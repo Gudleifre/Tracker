@@ -1,22 +1,18 @@
 import UIKit
 
 final class TabBarController: UITabBarController {
-    override func awakeFromNib() {
-        super.awakeFromNib()
-//        let storyboard = UIStoryboard(name: "Main", bundle: .main)
-//        
-//        let imagesListViewController = storyboard.instantiateViewController(
-//            withIdentifier: "ImagesListViewController"
-//        ) as! ImagesListViewController
-//        let imagesListPresenter = ImagesListPresenter()
-//        imagesListViewController.configure(imagesListPresenter)
-//        
-//        imagesListViewController.tabBarItem = UITabBarItem(
-//            title: "",
-//            image: UIImage(named: "mainNoActive"),
-//            selectedImage: UIImage(named: "mainActive")
-//        )
+    // MARK: - Overrides Methods
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        setupViewControllers()
+        setupTabBarAppearance()
+    }
+    
+    // MARK: - Private Methods
+    private func setupViewControllers() {
         let trackersViewController = TrackersViewController()
+        let trackersNavigationController = UINavigationController(rootViewController: trackersViewController)
+        
         trackersViewController.tabBarItem = UITabBarItem(
             title: "Трекеры",
             image: UIImage(resource: .trackersOff),
@@ -24,22 +20,24 @@ final class TabBarController: UITabBarController {
         )
         
         let statisticsViewController = StatisticsViewController()
+        let statisticsNavigationController = UINavigationController(rootViewController: statisticsViewController)
         
-//        let profilePresenter = ProfilePresenter()
-//        profileViewController.configure(profilePresenter)
-        
-        // TODO: тут остановился и не забудь сделать коммит начальный
         statisticsViewController.tabBarItem = UITabBarItem(
-            title: "",
-            image: UIImage(named: "profileNoActive"),
-            selectedImage: UIImage(named: "profileActive")
+            title: "Статистика",
+            image: UIImage(resource: .statisticsOff),
+            selectedImage: UIImage(resource: .statisticsOn)
         )
         
+        viewControllers = [trackersNavigationController, statisticsNavigationController]
+    }
+    
+    private func setupTabBarAppearance() {
         let appearance = UITabBarAppearance()
         appearance.configureWithOpaqueBackground()
-        appearance.backgroundColor = .ypBlackIOS
-        tabBar.standardAppearance = appearance
+        appearance.backgroundColor = .ypWhiteDay
+        appearance.shadowColor = UIColor.black.withAlphaComponent(0.2)
         
-        self.viewControllers = [trackersViewController, profileViewController]
+        tabBar.standardAppearance = appearance
+        tabBar.scrollEdgeAppearance = appearance
     }
 }
