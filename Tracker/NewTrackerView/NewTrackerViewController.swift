@@ -15,9 +15,15 @@ final class NewTrackerViewController: UIViewController {
         textField.placeholder = "Введите название трекера"
         textField.backgroundColor = .ypBackgroundDay
         textField.layer.cornerRadius = 16
+        
+        textField.autocorrectionType = .no
+        textField.autocapitalizationType = .none
+        textField.spellCheckingType = .no          
+        
         textField.clearButtonMode = .whileEditing
         textField.font = .systemFont(ofSize: 17, weight: .regular)
         textField.returnKeyType = .done
+        textField.delegate = self
         
         let paddingView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: textField.frame.height))
         textField.leftView = paddingView
@@ -77,6 +83,7 @@ final class NewTrackerViewController: UIViewController {
         setupUI()
         setupConstraints()
         setupActions()
+        hideKeyboardWhenTappedAround()
         
         if let categoryCell = tableView.cellForRow(at: IndexPath(row: 0, section: 0)) {
             categoryCell.detailTextLabel?.text = defaultCategory
@@ -230,5 +237,12 @@ extension NewTrackerViewController: ScheduleViewControllerDelegate {
         }
         
         updateCreateButtonState() 
+    }
+}
+
+extension NewTrackerViewController: UITextFieldDelegate {
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        textField.resignFirstResponder()
+        return true
     }
 }
