@@ -37,7 +37,7 @@ final class TrackersViewCell: UICollectionViewCell {
     
     private let emojiLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(ofSize: 16)
+        label.font = .systemFont(ofSize: 16, weight: .medium)
         label.backgroundColor = .white.withAlphaComponent(0.3)
         label.textAlignment = .center
         label.layer.cornerRadius = 12
@@ -92,28 +92,23 @@ final class TrackersViewCell: UICollectionViewCell {
     
     private func setupConstraints() {
         NSLayoutConstraint.activate([
-            // Цветная верхняя часть
             coloredView.topAnchor.constraint(equalTo: contentView.topAnchor),
             coloredView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             coloredView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
             coloredView.heightAnchor.constraint(equalToConstant: 90),
             
-            // Эмодзи на цветной части
             emojiLabel.topAnchor.constraint(equalTo: coloredView.topAnchor, constant: 12),
             emojiLabel.leadingAnchor.constraint(equalTo: coloredView.leadingAnchor, constant: 12),
             emojiLabel.widthAnchor.constraint(equalToConstant: 24),
             emojiLabel.heightAnchor.constraint(equalToConstant: 24),
             
-            // Название трекера
             titleLabel.leadingAnchor.constraint(equalTo: coloredView.leadingAnchor, constant: 12),
             titleLabel.trailingAnchor.constraint(equalTo: coloredView.trailingAnchor, constant: -12),
             titleLabel.bottomAnchor.constraint(equalTo: coloredView.bottomAnchor, constant: -12),
             
-            // Счетчик дней (в нижней прозрачной части)
             daysCountLabel.topAnchor.constraint(equalTo: coloredView.bottomAnchor, constant: 16),
             daysCountLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 12),
             
-            // Кнопка плюс (в нижней прозрачной части)
             plusButton.topAnchor.constraint(equalTo: coloredView.bottomAnchor, constant: 8),
             plusButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -12),
             plusButton.widthAnchor.constraint(equalToConstant: 34),

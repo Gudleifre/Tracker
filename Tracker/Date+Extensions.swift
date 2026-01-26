@@ -7,7 +7,6 @@ extension Date {
         return calendar.date(from: components) ?? self
     }
     
-    // Только для отладки
     func formattedString() -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "dd.MM.yyyy"

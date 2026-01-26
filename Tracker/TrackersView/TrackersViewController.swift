@@ -1,9 +1,6 @@
 import UIKit
 
 final class TrackersViewController: UIViewController {
-    
-    // MARK: - Public Properties
-    
     // MARK: - Private Properties
     private var categories: [TrackerCategory] = []
     private var completedTrackers: [TrackerRecord] = []
@@ -21,6 +18,15 @@ final class TrackersViewController: UIViewController {
         return button
     }()
     
+    private lazy var searchController: UISearchController = {
+        let searchController = UISearchController(searchResultsController: nil)
+        searchController.searchBar.placeholder = "Поиск"
+        searchController.hidesNavigationBarDuringPresentation = false
+        searchController.obscuresBackgroundDuringPresentation = false
+        searchController.searchBar.searchBarStyle = .minimal
+        return searchController
+    }()
+    
     private lazy var placeholderView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -31,22 +37,53 @@ final class TrackersViewController: UIViewController {
     // MARK: - Overrides Methods
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupUIElements()
-        setupCollectionView()
+        setupUI()
         loadMockData()
         updatePlaceholderVisibility()
     }
     
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        setupSearchBarAppearance()
+    }
+    
     // MARK: - Private Methods
-    private func setupUIElements() {
+    private func setupUI() {
         view.backgroundColor = .ypWhiteDay
         
         title = "Трекеры"
         navigationController?.navigationBar.prefersLargeTitles = true
         navigationItem.leftBarButtonItem = addButton
         
+        navigationItem.searchController = searchController
+        navigationItem.hidesSearchBarWhenScrolling = false
+        
         setupPlaceholder()
         setupDatePicker()
+        setupCollectionView()
+    }
+    
+    private func setupSearchBarAppearance() {
+        guard let navigationBar = navigationController?.navigationBar else { return }
+        
+        for subview in navigationBar.subviews {
+            for subSubview in subview.subviews {
+                if let searchBar = subSubview as? UISearchBar {
+                    searchBar.frame.size.height = 44
+                    
+                    if let textField = searchBar.value(forKey: "searchField") as? UITextField {
+                        textField.frame.size.height = 36
+                        textField.center.y = searchBar.bounds.midY
+                        textField.backgroundColor = .ypSearchPlaceholder
+                        textField.layer.cornerRadius = 10
+                        textField.clipsToBounds = true
+                        textField.font = .systemFont(ofSize: 17, weight: .regular)
+                    }
+                    
+                    return
+                }
+            }
+        }
     }
     
     private func setupPlaceholder() {
@@ -75,8 +112,8 @@ final class TrackersViewController: UIViewController {
             label.topAnchor.constraint(equalTo: imageView.bottomAnchor, constant: 8),
             label.centerXAnchor.constraint(equalTo: placeholderView.centerXAnchor),
             
-            placeholderView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            placeholderView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            placeholderView.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor),
+            placeholderView.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerYAnchor),
             placeholderView.widthAnchor.constraint(equalTo: view.widthAnchor),
             placeholderView.heightAnchor.constraint(equalToConstant: 200)
         ])
@@ -84,7 +121,6 @@ final class TrackersViewController: UIViewController {
     
     private func setupCollectionView() {
         trackersCollectionView.translatesAutoresizingMaskIntoConstraints = false
-        
         trackersCollectionView.register(TrackersViewCell.self, forCellWithReuseIdentifier: TrackersViewCell.identifier)
         trackersCollectionView.register(CategoryHeaderView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: CategoryHeaderView.identifier)
         
@@ -95,7 +131,6 @@ final class TrackersViewController: UIViewController {
         trackersCollectionView.dataSource = self
         trackersCollectionView.delegate = self
         trackersCollectionView.backgroundColor = .clear
-        
         view.addSubview(trackersCollectionView)
         
         NSLayoutConstraint.activate([
@@ -118,27 +153,27 @@ final class TrackersViewController: UIViewController {
         let mockTrackers = [
             Tracker(
                 id: UUID(),
-                title: "Пить воду",
-                color: .systemBlue,
-                emoji: "💧",
-                schedule: [.monday, .tuesday, .wednesday, .thursday, .friday],
+                title: "Тренировка по боксу",
+                color: .ypBlue,
+                emoji: "🥊",
+                schedule: [.tuesday, .saturday],
                 isPinned: false,
                 category: "Здоровье"
             ),
             Tracker(
                 id: UUID(),
-                title: "Поливать растения",
-                color: .systemGreen,
-                emoji: "😪",
-                schedule: [.monday, .wednesday, .friday],
+                title: "Читать книгу",
+                color: .colorSelection5,
+                emoji: "📚",
+                schedule: [.saturday, .sunday],
                 isPinned: false,
-                category: "Домашний уют"
+                category: "Саморазвитие"
             )
         ]
         
         categories = [
             TrackerCategory(title: "Здоровье", trackers: [mockTrackers[0]]),
-            TrackerCategory(title: "Домашний уют", trackers: [mockTrackers[1]])
+            TrackerCategory(title: "Саморазвитие", trackers: [mockTrackers[1]])
         ]
         
         completedTrackers = []
@@ -179,6 +214,7 @@ final class TrackersViewController: UIViewController {
     private func trackersForCurrentDate() -> [Tracker] {
         let calendar = Calendar.current
         let weekdayNumber = calendar.component(.weekday, from: currentDate)
+
         guard let currentWeekday = Weekday.from(weekdayNumber) else { return [] }
         
         return categories.flatMap { category in
@@ -210,19 +246,17 @@ final class TrackersViewController: UIViewController {
     
     // MARK: - @objc Methods
     @objc func datePickerValueChanged(_ sender: UIDatePicker) {
-        currentDate = sender.date
+        currentDate = sender.date.dateOnly()
         trackersCollectionView.reloadData()
         updatePlaceholderVisibility()
-        
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "dd.MM.yyyy"
-        let formattedDate = dateFormatter.string(from: sender.date)
-        print("Выбранная дата: \(formattedDate)")
     }
     
     @objc private func addButtonTapped(_ sender: UIButton) {
-        print("Добавление нового трекера")
-        // TODO: - доделать реализацию добавления трекера
+        let newTrackerVC = NewTrackerViewController()
+        let navController = UINavigationController(rootViewController: newTrackerVC)
+        
+        newTrackerVC.delegate = self
+        present(navController, animated: true)
     }
     
     @objc private func plusButtonTapped(_ sender: UIButton) {
@@ -336,5 +370,15 @@ extension TrackersViewController: UICollectionViewDelegateFlowLayout {
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
         return 9
+    }
+}
+
+extension TrackersViewController: NewTrackerViewControllerDelegate {
+    func didCreateTracker(_ tracker: Tracker, category: String) {
+        addNewTracker(tracker, toCategory: category)
+        trackersCollectionView.reloadData()
+        updatePlaceholderVisibility()
+        dismiss(animated: true)
+        print("Создан трекер: \(tracker.title) в категории \(category)")
     }
 }
