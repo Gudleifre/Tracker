@@ -18,7 +18,7 @@ final class NewTrackerViewController: UIViewController {
         
         textField.autocorrectionType = .no
         textField.autocapitalizationType = .none
-        textField.spellCheckingType = .no          
+        textField.spellCheckingType = .no
         
         textField.clearButtonMode = .whileEditing
         textField.font = .systemFont(ofSize: 17, weight: .regular)
@@ -136,10 +136,10 @@ final class NewTrackerViewController: UIViewController {
     }
     
     private func setupActions() {
-        titleTextField.addTarget(self, action: #selector(textFieldDidChange), for: .editingChanged)
+        titleTextField.addAction(UIAction { [weak self] _ in self?.textFieldDidChange() }, for: .editingChanged)
         
-        cancelButton.addTarget(self, action: #selector(cancelButtonTapped), for: .touchUpInside)
-        createButton.addTarget(self, action: #selector(createButtonTapped), for: .touchUpInside)
+        cancelButton.addAction(UIAction { [weak self] _ in self?.cancelButtonTapped() }, for: .touchUpInside)
+        createButton.addAction(UIAction { [weak self] _ in self?.createButtonTapped() }, for: .touchUpInside)
     }
     
     private func updateCreateButtonState() {
@@ -153,17 +153,15 @@ final class NewTrackerViewController: UIViewController {
         createButton.backgroundColor = isReadyToCreate ? .ypBlackDay : .ypGray
     }
     
-    // MARK: - @objc Methods
-    @objc private func textFieldDidChange() {
+    private func textFieldDidChange() {
         updateCreateButtonState()
     }
     
-    @objc private func cancelButtonTapped() {
+    private func cancelButtonTapped() {
         dismiss(animated: true)
     }
     
-    @objc private func createButtonTapped() {
-        print("Создаем трекер")
+    private func createButtonTapped() {
         guard let title = titleTextField.text, !title.isEmpty,
               !selectedSchedule.isEmpty else { return }
         
@@ -236,7 +234,7 @@ extension NewTrackerViewController: ScheduleViewControllerDelegate {
             }
         }
         
-        updateCreateButtonState() 
+        updateCreateButtonState()
     }
 }
 

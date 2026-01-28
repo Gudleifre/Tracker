@@ -246,7 +246,7 @@ final class TrackersViewController: UIViewController {
     
     // MARK: - @objc Methods
     @objc func datePickerValueChanged(_ sender: UIDatePicker) {
-        currentDate = sender.date.dateOnly()
+        currentDate = sender.date.dateOnly
         trackersCollectionView.reloadData()
         updatePlaceholderVisibility()
     }
