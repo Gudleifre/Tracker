@@ -60,7 +60,7 @@ final class TrackersViewController: UIViewController {
         
         setupPlaceholder()
         setupDatePicker()
-        setupCollectionView()
+        setupTrackersCollection()
     }
     
     private func setupSearchBarAppearance() {
@@ -119,7 +119,7 @@ final class TrackersViewController: UIViewController {
         ])
     }
     
-    private func setupCollectionView() {
+    private func setupTrackersCollection() {
         trackersCollectionView.translatesAutoresizingMaskIntoConstraints = false
         trackersCollectionView.register(TrackersViewCell.self, forCellWithReuseIdentifier: TrackersViewCell.identifier)
         trackersCollectionView.register(CategoryHeaderView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: CategoryHeaderView.identifier)
