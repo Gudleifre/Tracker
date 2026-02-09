@@ -300,8 +300,8 @@ final class NewTrackerViewController: UIViewController {
         let newTracker = Tracker(
             id: UUID(),
             title: title,
-            color: .colorSelection1,
-            emoji: "👨🏻‍💻",
+            color: selectedColor ?? .colorSelection1,
+            emoji: selectedEmoji ?? "💪🏻",
             schedule: selectedSchedule,
             isPinned: false,
             category: defaultCategory)
@@ -358,11 +358,12 @@ extension NewTrackerViewController: UITableViewDelegate {
 extension NewTrackerViewController: ScheduleViewControllerDelegate {
     func didSelectSchedule(_ schedule: [Weekday]) {
         selectedSchedule = schedule
-        if let scheduleCell = tableView.cellForRow(at: IndexPath(row: 1, section: 0)) {
-            if !schedule.isEmpty {
+        if let scheduleCell = tableView.cellForRow(at: IndexPath(row: 1, section: 0)) as? OptionTableViewCell {
+            if schedule.count == Weekday.allCases.count {
+                scheduleCell.detailTextLabel?.text = "Каждый день"
+            } else {
                 let daysString = schedule.map { $0.shortName }.joined(separator: ", ")
                 scheduleCell.detailTextLabel?.text = daysString
-                scheduleCell.detailTextLabel?.textColor = .ypGray
             }
         }
         

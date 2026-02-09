@@ -2,6 +2,8 @@ import UIKit
 
 final class TrackersViewController: UIViewController {
     // MARK: - Private Properties
+//    private let trackerStore: TrackerStore
+//    private let categoryStore TrackerCategoryStore
     private var categories: [TrackerCategory] = []
     private var completedTrackers: [TrackerRecord] = []
     private var currentDate = Date()
@@ -33,6 +35,17 @@ final class TrackersViewController: UIViewController {
         view.isHidden = true
         return view
     }()
+    
+    // MARK: - Initializers
+//    init(trackerStore: TrackerStore, categoryStore: TrackerCategoryStore) {
+//        self.trackerStore = trackerStore
+//        self.categoryStore = categoryStore
+//        super.init(nibName: nil, bundle: nil)
+//    }
+//    
+//    required init?(coder: NSCoder) {
+//        fatalError("init(coder:) has not been implemented") //TODO: подумать как переделать
+//    }
     
     // MARK: - Overrides Methods
     override func viewDidLoad() {
