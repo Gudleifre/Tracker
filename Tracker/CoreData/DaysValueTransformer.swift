@@ -7,7 +7,9 @@ final class DaysValueTransformer: ValueTransformer {
     override class func allowsReverseTransformation() -> Bool { true }
     
     override func transformedValue(_ value: Any?) -> Any? {
-        guard let days = value as? [Weekday] else { return nil }
+        guard let days = value as? [Weekday] else {
+            return nil
+        }
         
         do {
             let data = try JSONEncoder().encode(days)
@@ -19,7 +21,9 @@ final class DaysValueTransformer: ValueTransformer {
     }
     
     override func reverseTransformedValue(_ value: Any?) -> Any? {
-        guard let data = value as? NSData else { return nil }
+        guard let data = value as? NSData else {
+            return nil
+        }
         
         do {
             let days = try JSONDecoder().decode([Weekday].self, from: data as Data)

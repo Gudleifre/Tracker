@@ -19,25 +19,11 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
     // MARK: - CoreData Stack
     lazy var persistentContainer: NSPersistentContainer = {
         let container = NSPersistentContainer(name: "TrackerDataModel")
-        container.loadPersistentStores(completionHandler: { (storeDescription, error) in
+        container.loadPersistentStores(completionHandler: { storeDescription, error in
             if let error = error as NSError? {
                 fatalError("Unresolved error \(error), \(error.userInfo)")
             }
         })
         return container
     }()
-    
-    func saveContext() {
-        let context = persistentContainer.viewContext
-        if context.hasChanges {
-            do {
-                try context.save()
-            } catch {
-                context.rollback()
-                //                let nserror = error as NSError
-                //                fatalError("Unresolved error \(nserror), \(nserror.userInfo)")
-                
-            }
-        }
-    }
 }

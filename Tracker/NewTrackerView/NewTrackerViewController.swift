@@ -212,7 +212,7 @@ final class NewTrackerViewController: UIViewController {
             contentView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
             contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
             contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor)
-            ])
+        ])
         
         NSLayoutConstraint.activate([
             titleTextField.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 24),
@@ -227,7 +227,7 @@ final class NewTrackerViewController: UIViewController {
             
             emojiLabel.topAnchor.constraint(equalTo: tableView.bottomAnchor, constant: 32),
             emojiLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 28),
-    
+            
             emojiCollectionView.topAnchor.constraint(equalTo: emojiLabel.bottomAnchor),
             emojiCollectionView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, ),
             emojiCollectionView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
@@ -263,7 +263,7 @@ final class NewTrackerViewController: UIViewController {
         }
         view.layoutIfNeeded()
     }
-
+    
     
     private func setupActions() {
         titleTextField.addAction(UIAction { [weak self] _ in self?.textFieldDidChange() }, for: .editingChanged)
@@ -389,7 +389,7 @@ extension NewTrackerViewController: UICollectionViewDataSource {
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         switch collectionView {
-            case emojiCollectionView:
+        case emojiCollectionView:
             guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: EmojiCell.identifier, for: indexPath) as? EmojiCell else { return UICollectionViewCell()}
             cell.configure(with: emojis[indexPath.row])
             return cell
@@ -408,13 +408,13 @@ extension NewTrackerViewController: UICollectionViewDataSource {
 extension NewTrackerViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         let itemsPerRow: CGFloat = 6
-           let interitemSpacing: CGFloat = 5
-           let sectionInsets = UIEdgeInsets(top: 24, left: 18, bottom: 24, right: 19)
-           
-           let availableWidth = collectionView.frame.width - sectionInsets.left - sectionInsets.right
-           let itemWidth = (availableWidth - (interitemSpacing * (itemsPerRow - 1))) / itemsPerRow
-           
-           return CGSize(width: itemWidth, height: itemWidth)
+        let interitemSpacing: CGFloat = 5
+        let sectionInsets = UIEdgeInsets(top: 24, left: 18, bottom: 24, right: 19)
+        
+        let availableWidth = collectionView.frame.width - sectionInsets.left - sectionInsets.right
+        let itemWidth = (availableWidth - (interitemSpacing * (itemsPerRow - 1))) / itemsPerRow
+        
+        return CGSize(width: itemWidth, height: itemWidth)
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
