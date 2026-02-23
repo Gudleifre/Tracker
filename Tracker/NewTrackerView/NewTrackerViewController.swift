@@ -6,13 +6,8 @@ protocol NewTrackerViewControllerDelegate: AnyObject {
 
 final class NewTrackerViewController: UIViewController {
     weak var delegate: NewTrackerViewControllerDelegate?
+    
     // MARK: - Private Properties
-    private let emojis = ["🙂", "😻", "🌺", "🐶", "❤️", "😱", "😇", "😡", "🥶", "🤔", "🙌", "🍔", "🥦", "🏓", "🥇", "🎸", "🏝️", "😪"]
-    private let colors: [UIColor] = [
-        .colorSelection1, .colorSelection2, .colorSelection3, .colorSelection4, .colorSelection5, .colorSelection6,
-        .colorSelection7, .colorSelection8, .colorSelection9, .colorSelection10, .colorSelection11, .colorSelection12,
-        .colorSelection13, .colorSelection14, .colorSelection15, .colorSelection16, .colorSelection17, .colorSelection18
-    ]
     private let defaultCategory = "Важное"
     private var selectedSchedule: [Weekday] = []
     private var selectedEmojiIndex: Int?
@@ -381,8 +376,8 @@ extension NewTrackerViewController: UITextFieldDelegate {
 extension NewTrackerViewController: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         switch collectionView {
-        case emojiCollectionView: emojis.count
-        case colorCollectionView: colors.count
+        case emojiCollectionView: MockData.emojis.count
+        case colorCollectionView: MockData.colors.count
         default: 0
         }
     }
@@ -391,12 +386,12 @@ extension NewTrackerViewController: UICollectionViewDataSource {
         switch collectionView {
         case emojiCollectionView:
             guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: EmojiCell.identifier, for: indexPath) as? EmojiCell else { return UICollectionViewCell()}
-            cell.configure(with: emojis[indexPath.row])
+            cell.configure(with: MockData.emojis[indexPath.row])
             return cell
             
         case colorCollectionView:
             guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ColorCell.identifier, for: indexPath) as? ColorCell else { return UICollectionViewCell()}
-            cell.configure(with: colors[indexPath.row])
+            cell.configure(with: MockData.colors[indexPath.row])
             return cell
             
         default:
@@ -439,7 +434,7 @@ extension NewTrackerViewController: UICollectionViewDelegate {
                 collectionView.deselectItem(at: previousIndexPath, animated: false)
             }
             selectedEmojiIndex = indexPath.item
-            selectedEmoji = emojis[indexPath.item]
+            selectedEmoji = MockData.emojis[indexPath.item]
             
         case colorCollectionView:
             if let selectedIndex = selectedColorIndex {
@@ -447,7 +442,7 @@ extension NewTrackerViewController: UICollectionViewDelegate {
                 collectionView.deselectItem(at: previousIndexPath, animated: false)
             }
             selectedColorIndex = indexPath.item
-            selectedColor = colors[indexPath.item]
+            selectedColor = MockData.colors[indexPath.item]
             
         default:
             break

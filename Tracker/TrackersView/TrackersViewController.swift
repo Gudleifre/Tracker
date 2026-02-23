@@ -233,14 +233,14 @@ final class TrackersViewController: UIViewController {
     }
     
     private func isTrackerCompleted(id: UUID, on date: Date) -> Bool {
-        return allRecords.contains { record in
+        allRecords.contains { record in
             record.tracker?.id == id &&
             Calendar.current.isDate(record.date ?? Date(), inSameDayAs: date)
         }
     }
     
     private func completedDaysCount(for trackerId: UUID) -> Int {
-        return allRecords.filter { $0.tracker?.id == trackerId }.count
+        allRecords.filter { $0.tracker?.id == trackerId }.count
     }
     
     private func setupDatePicker() {
@@ -283,8 +283,8 @@ final class TrackersViewController: UIViewController {
         let section = tag / 100
         let row = tag % 100
         
-        guard section < categories.count else { return }
-        guard row < categories[section].trackers.count else { return }
+        guard section < categories.count,
+              row < categories[section].trackers.count else { return }
         
         let tracker = categories[section].trackers[row]
         
