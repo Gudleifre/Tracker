@@ -8,7 +8,14 @@ final class NewTrackerViewController: UIViewController {
     weak var delegate: NewTrackerViewControllerDelegate?
     
     // MARK: - Private Properties
-    private let defaultCategory = "Важное"
+    private let categoryStore = TrackerCategoryStore()
+    private var selectedCategory: String? {
+        didSet {
+            updateCategoryCell()
+            updateCreateButtonState()
+        }
+    }
+//    private let defaultCategory = "Важное"
     private var selectedSchedule: [Weekday] = []
     private var selectedEmojiIndex: Int?
     private var selectedColorIndex: Int?
@@ -123,10 +130,10 @@ final class NewTrackerViewController: UIViewController {
         setupActions()
         hideKeyboardWhenTappedAround()
         
-        if let categoryCell = tableView.cellForRow(at: IndexPath(row: 0, section: 0)) {
-            categoryCell.detailTextLabel?.text = defaultCategory
-            categoryCell.detailTextLabel?.textColor = .ypGray
-        }
+//        if let categoryCell = tableView.cellForRow(at: IndexPath(row: 0, section: 0)) {
+//            categoryCell.detailTextLabel?.text = defaultCategory
+//            categoryCell.detailTextLabel?.textColor = .ypGray
+//        }
         
         updateCreateButtonState()
     }
@@ -259,7 +266,6 @@ final class NewTrackerViewController: UIViewController {
         view.layoutIfNeeded()
     }
     
-    
     private func setupActions() {
         titleTextField.addAction(UIAction { [weak self] _ in self?.textFieldDidChange() }, for: .editingChanged)
         
@@ -269,7 +275,7 @@ final class NewTrackerViewController: UIViewController {
     
     private func updateCreateButtonState() {
         let hasText = !(titleTextField.text?.isEmpty ?? true)
-        let hasCategory = true
+        let hasCategory = selectedCategory != nil
         let hasSchedule = !selectedSchedule.isEmpty
         let hasEmoji = selectedEmoji != nil
         let hasColor = selectedColor != nil
@@ -290,19 +296,47 @@ final class NewTrackerViewController: UIViewController {
     
     private func createButtonTapped() {
         guard let title = titleTextField.text, !title.isEmpty,
-              !selectedSchedule.isEmpty else { return }
+              let selectedEmoji,
+              let selectedColor,
+              !selectedSchedule.isEmpty,
+              let selectedCategory else { return }
         
         let newTracker = Tracker(
             id: UUID(),
             title: title,
-            color: selectedColor ?? .colorSelection1,
-            emoji: selectedEmoji ?? "💪🏻",
+            color: selectedColor,
+            emoji: selectedEmoji,
             schedule: selectedSchedule,
             isPinned: false,
-            category: defaultCategory)
+            category: selectedCategory
+        )
         
-        delegate?.didCreateTracker(newTracker, category: defaultCategory)
+        delegate?.didCreateTracker(newTracker, category: selectedCategory)
         dismiss(animated: true)
+    }
+    
+    private func updateCategoryCell() {
+        if let categoryCell = tableView.cellForRow(at: IndexPath(row: 0, section: 0)) as? OptionTableViewCell {
+            if let category = selectedCategory {
+                categoryCell.detailTextLabel?.text = category
+            } else {
+                categoryCell.detailTextLabel?.text = nil
+            }
+        }
+    }
+    
+    private func showCategoriesScreen() {
+        let categoriesVM = CategoriesViewModel(
+            categoryStore: categoryStore,
+            selectedCategory: selectedCategory
+        )
+        categoriesVM.onCategorySelected = { [weak self] category in
+            self?.selectedCategory = category
+//            self?.updateCategoryCell()
+        }
+        
+        let categoriesVC = CategoriesViewController(viewModel: categoriesVM)
+        navigationController?.pushViewController(categoriesVC, animated: true)
     }
 }
 
@@ -321,7 +355,7 @@ extension NewTrackerViewController: UITableViewDataSource {
         
         if indexPath.row == 0 {
             cell.textLabel?.text = "Категория"
-            cell.detailTextLabel?.text = defaultCategory
+            cell.detailTextLabel?.text = selectedCategory
             
             
         } else {
@@ -342,6 +376,7 @@ extension NewTrackerViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if indexPath.row == 0 {
             print("Выбор категории")
+            showCategoriesScreen()
         } else {
             let scheduleVC = ScheduleViewController()
             scheduleVC.delegate = self

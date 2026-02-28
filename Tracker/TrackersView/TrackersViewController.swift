@@ -36,6 +36,19 @@ final class TrackersViewController: UIViewController {
         return view
     }()
     
+    private lazy var filterButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("Фильтры", for: .normal)
+        button.setTitleColor(.ypWhiteDay, for: .normal)
+        button.backgroundColor = .ypBlue
+        button.titleLabel?.font = .systemFont(ofSize: 17, weight: .regular)
+        button.layer.cornerRadius = 16
+        button.layer.masksToBounds = true
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.addTarget(self, action: #selector(filterButtonTapped), for: .touchUpInside)
+        return button
+    }()
+    
     private var categories: [TrackerCategory] {
         return categoriesForUI
     }
@@ -128,6 +141,7 @@ final class TrackersViewController: UIViewController {
         setupPlaceholder()
         setupDatePicker()
         setupTrackersCollection()
+        setupFilterButton()
     }
     
     private func setupSearchBarAppearance() {
@@ -208,6 +222,22 @@ final class TrackersViewController: UIViewController {
         ])
     }
     
+    private func setupFilterButton() {
+        view.addSubview(filterButton)
+        
+        NSLayoutConstraint.activate([
+            filterButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
+            filterButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            filterButton.widthAnchor.constraint(equalToConstant: 114),
+            filterButton.heightAnchor.constraint(equalToConstant: 50)
+        ])
+    }
+    
+    private func updateFilterButtonVisibility() {
+        let hasTrackers = !filteredTrackers.isEmpty
+        filterButton.isHidden = !hasTrackers
+    }
+    
     private func showPlaceholder() {
         placeholderView.isHidden = false
     }
@@ -258,8 +288,10 @@ final class TrackersViewController: UIViewController {
         
         if totalTrackers == 0 {
             showPlaceholder()
+            filterButton.isHidden = true
         } else {
             hidePlaceholder()
+            filterButton.isHidden = false
         }
     }
     
@@ -268,6 +300,7 @@ final class TrackersViewController: UIViewController {
         currentDate = sender.date.dateOnly
         trackersCollectionView.reloadData()
         updatePlaceholderVisibility()
+        updateFilterButtonVisibility()
     }
     
     @objc private func addButtonTapped(_ sender: UIButton) {
@@ -300,6 +333,11 @@ final class TrackersViewController: UIViewController {
         
         let indexPath = IndexPath(row: row, section: section)
         trackersCollectionView.reloadItems(at: [indexPath])
+    }
+    
+    @objc private func filterButtonTapped() {
+        print("Кнопка фильтры нажата")
+        // TODO: - process code
     }
 }
 // MARK: - Extensions
