@@ -8,6 +8,7 @@ final class NewTrackerViewController: UIViewController {
     weak var delegate: NewTrackerViewControllerDelegate?
     
     // MARK: - Private Properties
+    private let maxLength = 38
     private let categoryStore = TrackerCategoryStore()
     private var selectedSchedule: [Weekday] = []
     private var selectedEmojiIndex: Int?
@@ -53,6 +54,25 @@ final class NewTrackerViewController: UIViewController {
         
         textField.translatesAutoresizingMaskIntoConstraints = false
         return textField
+    }()
+    
+    private lazy var errorLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Ограничение \(maxLength) символов"
+        label.font = .systemFont(ofSize: 17, weight: .regular)
+        label.textColor = .ypRed
+        label.textAlignment = .center
+        label.isHidden = true
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
+    private lazy var textFieldStack: UIStackView = {
+        let stackView = UIStackView(arrangedSubviews: [titleTextField, errorLabel])
+        stackView.axis = .vertical
+        stackView.spacing = 8
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        return stackView
     }()
     
     private lazy var tableView: UITableView = {
@@ -146,13 +166,13 @@ final class NewTrackerViewController: UIViewController {
         view.addSubview(scrollView)
         scrollView.addSubview(contentView)
         
-        view.addSubview(titleTextField)
-        view.addSubview(tableView)
-        view.addSubview(emojiLabel)
-        view.addSubview(emojiCollectionView)
-        view.addSubview(colorLabel)
-        view.addSubview(colorCollectionView)
-        view.addSubview(buttonsStackView)
+        contentView.addSubview(textFieldStack)
+        contentView.addSubview(tableView)
+        contentView.addSubview(emojiLabel)
+        contentView.addSubview(emojiCollectionView)
+        contentView.addSubview(colorLabel)
+        contentView.addSubview(colorCollectionView)
+        contentView.addSubview(buttonsStackView)
         
         tableView.dataSource = self
         tableView.delegate = self
@@ -202,16 +222,14 @@ final class NewTrackerViewController: UIViewController {
             contentView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
             contentView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
             contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
-            contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor)
-        ])
-        
-        NSLayoutConstraint.activate([
-            titleTextField.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 24),
-            titleTextField.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            titleTextField.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-            titleTextField.heightAnchor.constraint(equalToConstant: 75),
+            contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
             
-            tableView.topAnchor.constraint(equalTo: titleTextField.bottomAnchor, constant: 24),
+            titleTextField.heightAnchor.constraint(equalToConstant: 75),
+            textFieldStack.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 24),
+            textFieldStack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            textFieldStack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            
+            tableView.topAnchor.constraint(equalTo: textFieldStack.bottomAnchor, constant: 24),
             tableView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             tableView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             tableView.heightAnchor.constraint(equalToConstant: 150),
@@ -276,6 +294,14 @@ final class NewTrackerViewController: UIViewController {
     }
     
     private func textFieldDidChange() {
+        guard let text = titleTextField.text else { return }
+        if text.count > maxLength {
+            titleTextField.text = String(text.prefix(maxLength))
+            errorLabel.isHidden = false
+        } else {
+            errorLabel.isHidden = true
+        }
+        
         updateCreateButtonState()
     }
     
@@ -363,7 +389,6 @@ extension NewTrackerViewController: UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if indexPath.row == 0 {
-            print("Выбор категории")
             showCategoriesScreen()
         } else {
             let scheduleVC = ScheduleViewController()
@@ -392,6 +417,19 @@ extension NewTrackerViewController: ScheduleViewControllerDelegate {
 extension NewTrackerViewController: UITextFieldDelegate {
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         textField.resignFirstResponder()
+        return true
+    }
+    
+    func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
+        let currentText = textField.text ?? ""
+        let newText = (currentText as NSString).replacingCharacters(in: range, with: string)
+        
+        if newText.count > maxLength {
+            errorLabel.isHidden = false
+        } else {
+            errorLabel.isHidden = true
+        }
+        
         return true
     }
 }
