@@ -7,18 +7,18 @@ final class CoreDataStack {
     
     // MARK: - Persistent Container
     lazy var persistentContainer: NSPersistentContainer = {
-         let container = NSPersistentContainer(name: "TrackerDataModel")
-         container.loadPersistentStores { storeDescription, error in
-             if let error = error as NSError? {
-                 assertionFailure("CoreData error: \(error), \(error.userInfo)")
-                 print("CoreData failed to load: \(error)")
-             }
-         }
-         return container
-     }()
+        let container = NSPersistentContainer(name: "TrackerDataModel")
+        container.loadPersistentStores { storeDescription, error in
+            if let error = error as NSError? {
+                assertionFailure("CoreData error: \(error), \(error.userInfo)")
+                print("CoreData failed to load: \(error)")
+            }
+        }
+        return container
+    }()
     
     // MARK: - Context
-        var context: NSManagedObjectContext {
-            return persistentContainer.viewContext
-        }
+    var context: NSManagedObjectContext {
+        return persistentContainer.viewContext
+    }
 }

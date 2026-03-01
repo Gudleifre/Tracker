@@ -1,8 +1,9 @@
 import UIKit
 
 final class CategoriesViewController: UIViewController {
-    
+    // MARK: - Private Properties
     private let viewModel: CategoriesViewModel
+    private var currentDataSource: [CategoryViewModel] = []
     
     private lazy var tableView: UITableView = {
         let tableView = UITableView()
@@ -33,8 +34,6 @@ final class CategoriesViewController: UIViewController {
         return view
     }()
     
-    private var currentDataSource: [CategoryViewModel] = []
-    
     // MARK: - Initializers
     init(viewModel: CategoriesViewModel) {
         self.viewModel = viewModel
@@ -53,9 +52,6 @@ final class CategoriesViewController: UIViewController {
         setupConstraints()
         setupPlaceholder()
         bindViewModel()
-        
-//        tableView.tableFooterView = UIView()
-        
         updatePlaceholderVisibility()
     }
     
@@ -67,7 +63,6 @@ final class CategoriesViewController: UIViewController {
     // MARK: - Private Methods
     private func setupUI() {
         view.backgroundColor = .ypWhiteDay
-      
         
         title = "Категория"
         navigationController?.navigationBar.prefersLargeTitles = false
@@ -82,23 +77,23 @@ final class CategoriesViewController: UIViewController {
     }
     
     private func setupConstraints() {
-      NSLayoutConstraint.activate([
-        tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-        tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-        tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-        tableView.bottomAnchor.constraint(equalTo: addButton.topAnchor, constant: -16),
-        
-        addButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-        addButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-        addButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
-        addButton.heightAnchor.constraint(equalToConstant: 60),
-        
-        placeholderView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-        placeholderView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-        placeholderView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-        placeholderView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-        placeholderView.heightAnchor.constraint(equalToConstant: 200)
-        
+        NSLayoutConstraint.activate([
+            tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            tableView.bottomAnchor.constraint(equalTo: addButton.topAnchor, constant: -16),
+            
+            addButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            addButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            addButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
+            addButton.heightAnchor.constraint(equalToConstant: 60),
+            
+            placeholderView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            placeholderView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            placeholderView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            placeholderView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            placeholderView.heightAnchor.constraint(equalToConstant: 200)
+            
         ])
     }
     
@@ -144,7 +139,7 @@ final class CategoriesViewController: UIViewController {
                 case .loading:
                     break
                     
-                    case .loaded(let categories):
+                case .loaded(let categories):
                     self?.currentDataSource = categories
                     self?.tableView.reloadData()
                     self?.updatePlaceholderVisibility()
@@ -165,12 +160,44 @@ final class CategoriesViewController: UIViewController {
         }
     }
     
+    private func showEditCategoryScreen(_ category: CategoryViewModel, at indexPath: IndexPath) {
+        let editVC = NewCategoryViewController()
+        editVC.mode = .edit
+        editVC.initialCategoryName = category.title
+        editVC.onCategoryCreated = { [weak self] newName in
+            self?.viewModel.updateCategory(at: indexPath.row, with: newName)
+        }
+        
+        let navController = UINavigationController(rootViewController: editVC)
+        present(navController, animated: true)
+    }
+    
+    private func showDeleteConfirmation(for category: CategoryViewModel, at indexPath: IndexPath) {
+        let alert = UIAlertController(
+            title: "Эта категория точно не нужна?",
+            message: nil,
+            preferredStyle: .actionSheet
+        )
+        
+        let deleteAction = UIAlertAction(title: "Удалить", style: .destructive) { [weak self] _ in
+            self?.viewModel.deleteCategory(at: indexPath.row)
+        }
+        
+        let cancelAction = UIAlertAction(title: "Отменить", style: .cancel)
+        
+        alert.addAction(deleteAction)
+        alert.addAction(cancelAction)
+        
+        present(alert, animated: true)
+    }
+    
     // MARK: - @objc Methods
     @objc private func addButtonTapped() {
         let newCategoryVC = NewCategoryViewController()
         newCategoryVC.onCategoryCreated = { [weak self] categoryName in
             self?.viewModel.addCategory(title: categoryName)
         }
+        
         navigationController?.pushViewController(newCategoryVC, animated: true)
     }
 }
@@ -202,6 +229,28 @@ extension CategoriesViewController: UITableViewDelegate {
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
             self?.viewModel.doneButtonTapped()
+        }
+    }
+    
+    func tableView(_ tableView: UITableView,
+                   contextMenuConfigurationForRowAt indexPath: IndexPath,
+                   point: CGPoint) -> UIContextMenuConfiguration? {
+        
+        let category = currentDataSource[indexPath.row]
+        
+        return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { _ in
+            let editAction = UIAction(title: "Редактировать",
+                                      image: nil) { [weak self] _ in
+                self?.showEditCategoryScreen(category, at: indexPath)
+            }
+            
+            let deleteAction = UIAction(title: "Удалить",
+                                        image: nil,
+                                        attributes: .destructive) { [weak self] _ in
+                self?.showDeleteConfirmation(for: category, at: indexPath)
+            }
+            
+            return UIMenu(title: "", children: [editAction, deleteAction])
         }
     }
 }

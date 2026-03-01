@@ -336,7 +336,6 @@ final class TrackersViewController: UIViewController {
     }
     
     @objc private func filterButtonTapped() {
-        print("Кнопка фильтры нажата")
         // TODO: - process code
     }
 }

@@ -9,13 +9,6 @@ final class NewTrackerViewController: UIViewController {
     
     // MARK: - Private Properties
     private let categoryStore = TrackerCategoryStore()
-    private var selectedCategory: String? {
-        didSet {
-            updateCategoryCell()
-            updateCreateButtonState()
-        }
-    }
-//    private let defaultCategory = "Важное"
     private var selectedSchedule: [Weekday] = []
     private var selectedEmojiIndex: Int?
     private var selectedColorIndex: Int?
@@ -23,6 +16,13 @@ final class NewTrackerViewController: UIViewController {
     private var selectedColor: UIColor?
     private var emojiCollectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
     private var colorCollectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
+    
+    private var selectedCategory: String? {
+        didSet {
+            updateCategoryCell()
+            updateCreateButtonState()
+        }
+    }
     
     private lazy var scrollView: UIScrollView = {
         let scrollView = UIScrollView()
@@ -42,11 +42,6 @@ final class NewTrackerViewController: UIViewController {
         textField.placeholder = "Введите название трекера"
         textField.backgroundColor = .ypBackgroundDay
         textField.layer.cornerRadius = 16
-        
-        textField.autocorrectionType = .no
-        textField.autocapitalizationType = .none
-        textField.spellCheckingType = .no
-        
         textField.clearButtonMode = .whileEditing
         textField.font = .systemFont(ofSize: 17, weight: .regular)
         textField.returnKeyType = .done
@@ -129,12 +124,6 @@ final class NewTrackerViewController: UIViewController {
         setupConstraints()
         setupActions()
         hideKeyboardWhenTappedAround()
-        
-//        if let categoryCell = tableView.cellForRow(at: IndexPath(row: 0, section: 0)) {
-//            categoryCell.detailTextLabel?.text = defaultCategory
-//            categoryCell.detailTextLabel?.textColor = .ypGray
-//        }
-        
         updateCreateButtonState()
     }
     
@@ -332,7 +321,6 @@ final class NewTrackerViewController: UIViewController {
         )
         categoriesVM.onCategorySelected = { [weak self] category in
             self?.selectedCategory = category
-//            self?.updateCategoryCell()
         }
         
         let categoriesVC = CategoriesViewController(viewModel: categoriesVM)

@@ -1,7 +1,6 @@
 import UIKit
 
 final class OnboardingViewController: UIPageViewController {
-    
     // MARK: - Private Properties
     private lazy var pages: [UIViewController] = {
         let content = [
@@ -27,7 +26,6 @@ final class OnboardingViewController: UIPageViewController {
             label.textAlignment = .center
             label.translatesAutoresizingMaskIntoConstraints = false
             vc.view.addSubview(label)
-            
             return vc
         }
     }()
@@ -56,8 +54,9 @@ final class OnboardingViewController: UIPageViewController {
         super.init(transitionStyle: .scroll, navigationOrientation: .horizontal, options: nil)
     }
     
+    @available(*, unavailable)
     required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
+        nil
     }
     
     // MARK: - Overrides Methods
@@ -75,6 +74,7 @@ final class OnboardingViewController: UIPageViewController {
         setupLabelConstraints()
     }
     
+    // MARK: - Private Methods
     private func setupUIElements() {
         pageControl.numberOfPages = pages.count
         view.addSubview(pageControl)
@@ -138,6 +138,7 @@ final class OnboardingViewController: UIPageViewController {
     }
 }
 
+// MARK: - Extensions
 extension OnboardingViewController: UIPageViewControllerDataSource {
     func pageViewController(_ pageViewController: UIPageViewController, viewControllerBefore viewController: UIViewController) -> UIViewController? {
         guard let index = pages.firstIndex(of: viewController), index > 0 else { return nil }

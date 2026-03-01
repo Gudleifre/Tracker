@@ -26,7 +26,7 @@ final class ColorCell: UICollectionViewCell {
     // MARK: - Initializers
     override init(frame: CGRect) {
         super.init(frame: frame)
-       setupUI()
+        setupUI()
     }
     
     @available(*, unavailable)
@@ -65,6 +65,6 @@ final class ColorCell: UICollectionViewCell {
             selectionView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
             selectionView.widthAnchor.constraint(equalToConstant: 52),
             selectionView.heightAnchor.constraint(equalToConstant: 52),
-            ])
+        ])
     }
 }

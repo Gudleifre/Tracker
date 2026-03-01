@@ -58,7 +58,7 @@ final class CategoryTableViewCell: UITableViewCell {
         backgroundColor = .clear
         contentView.backgroundColor = .ypBackgroundDay
         selectionStyle = .none
-       
+        
         contentView.addSubview(titleLabel)
         contentView.addSubview(checkmarkImageView)
         
@@ -71,6 +71,6 @@ final class CategoryTableViewCell: UITableViewCell {
             checkmarkImageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             checkmarkImageView.heightAnchor.constraint(equalToConstant: 24),
             checkmarkImageView.widthAnchor.constraint(equalToConstant: 24)
-            ])
+        ])
     }
 }

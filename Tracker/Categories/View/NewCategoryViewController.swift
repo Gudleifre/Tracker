@@ -1,7 +1,15 @@
 import UIKit
 
+enum CategoryMode {
+    case create
+    case edit
+}
+
 final class NewCategoryViewController: UIViewController {
+    // MARK: - Public Properties
     var onCategoryCreated: ((String) -> Void)?
+    var mode: CategoryMode = .create
+    var initialCategoryName: String?
     
     // MARK: - Private Properties
     private lazy var textField: UITextField = {
@@ -48,9 +56,19 @@ final class NewCategoryViewController: UIViewController {
     private func setupUI() {
         view.backgroundColor = .ypWhiteDay
         
-        title = "Новая категория"
+        title = mode == .edit ? "Редактирование категории" : "Новая категория"
+        
+        if mode == .edit {
+            textField.text = initialCategoryName
+            textFieldDidChange()
+        }
+        
         navigationController?.navigationBar.prefersLargeTitles = false
         navigationItem.hidesBackButton = true
+        navigationController?.navigationBar.titleTextAttributes = [
+            .font: UIFont.systemFont(ofSize: 16, weight: .medium),
+            .foregroundColor: UIColor.ypBlackDay
+        ]
         
         view.addSubview(textField)
         view.addSubview(doneButton)
@@ -67,9 +85,10 @@ final class NewCategoryViewController: UIViewController {
             doneButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
             doneButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
             doneButton.heightAnchor.constraint(equalToConstant: 60)
-            ])
+        ])
     }
     
+    // MARK: - @objc Methods
     @objc private func textFieldDidChange() {
         let hasText = !(textField.text?.isEmpty ?? true)
         doneButton.isEnabled = hasText
@@ -79,7 +98,12 @@ final class NewCategoryViewController: UIViewController {
     @objc private func doneButtonTapped() {
         guard let categoryName = textField.text, !categoryName.isEmpty else { return }
         onCategoryCreated?(categoryName)
-        navigationController?.popViewController(animated: true)
+        
+        if mode == .edit {
+            dismiss(animated: true)
+        } else {
+            navigationController?.popViewController(animated: true)
+        }
     }
 }
 

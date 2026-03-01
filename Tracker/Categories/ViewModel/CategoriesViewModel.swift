@@ -46,6 +46,16 @@ final class CategoriesViewModel {
         loadCategories()
     }
     
+    func deleteCategory(at index: Int) {
+        categoryStore.deleteCategory(at: index)
+        loadCategories()
+    }
+    
+    func updateCategory(at index: Int, with newTitle: String) {
+        categoryStore.updateCategory(at: index, with: newTitle)
+        loadCategories()
+    }
+    
     func doneButtonTapped() {
         onDismissRequested?()
     }
@@ -62,6 +72,7 @@ final class CategoriesViewModel {
     }
 }
 
+// MARK: - Extensions
 extension CategoriesViewModel: TrackerCategoryStoreDelegate {
     func didUpdateCategories() {
         loadCategories()
