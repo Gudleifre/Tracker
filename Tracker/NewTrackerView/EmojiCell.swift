@@ -27,12 +27,7 @@ final class EmojiCell: UICollectionViewCell {
     // MARK: - Public Methods
     func configure(with emoji: String, isSelected: Bool = false) {
         emojiLabel.text = emoji
-        
-        if isSelected {
-            contentView.backgroundColor = .ypLightGray
-        } else {
-            contentView.backgroundColor = .clear
-        }
+        contentView.backgroundColor = isSelected ? .ypLightGray : .clear
     }
     
     override var isSelected: Bool {

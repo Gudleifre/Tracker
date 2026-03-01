@@ -6,25 +6,14 @@ protocol TrackerStoreDelegate: AnyObject {
 }
 
 final class TrackerStore: NSObject {
-    static let shared = TrackerStore()
     weak var delegate: TrackerStoreDelegate?
     
     // MARK: - Private Properties
-    private let context: NSManagedObjectContext
+    private let context = CoreDataStack.shared.context
     private var fetchedResultsController: NSFetchedResultsController<TrackerCoreData>?
     
     // MARK: - Initializers
-    private override init() {
-        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else {
-            fatalError("AppDelegate not found")
-        }
-        self.context = appDelegate.persistentContainer.viewContext
-        super.init()
-        setupFetchedResultsController()
-    }
-    
-    init(context: NSManagedObjectContext) {
-        self.context = context
+    override init() {
         super.init()
         setupFetchedResultsController()
     }
