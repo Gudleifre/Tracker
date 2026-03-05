@@ -50,7 +50,7 @@ final class TrackersViewCell: UICollectionViewCell {
         let label = UILabel()
         label.font = .systemFont(ofSize: 12, weight: .medium)
         label.textColor = .ypBlackDay
-        label.text = "0 дней"
+        label.text = NSLocalizedString("days_count", comment: "Days count")
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -78,7 +78,12 @@ final class TrackersViewCell: UICollectionViewCell {
         plusButton.setImage(UIImage(systemName: imageName), for: .normal)
         plusButton.backgroundColor = isCompleted ? tracker.color.withAlphaComponent(0.3) : tracker.color
         
-        daysCountLabel.text = "\(completedDays) \(dayString(for: completedDays))"
+        let daysString = String.localizedStringWithFormat(
+            NSLocalizedString("days_count", comment: "Number of days"),
+            completedDays
+        )
+        
+        daysCountLabel.text = daysString
     }
     
     // MARK: - Private Methods
@@ -116,20 +121,5 @@ final class TrackersViewCell: UICollectionViewCell {
             plusButton.heightAnchor.constraint(equalToConstant: 34),
             plusButton.bottomAnchor.constraint(lessThanOrEqualTo: contentView.bottomAnchor)
         ])
-    }
-    
-    private func dayString(for count: Int) -> String {
-        let lastDigit = count % 10
-        let lastTwoDigits = count % 100
-        
-        if lastTwoDigits >= 11 && lastTwoDigits <= 19 {
-            return "дней"
-        }
-        
-        switch lastDigit {
-        case 1: return "день"
-        case 2, 3, 4: return "дня"
-        default: return "дней"
-        }
     }
 }

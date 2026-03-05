@@ -6,7 +6,7 @@ final class StatisticsViewController: UIViewController {
         super.viewDidLoad()
         
         view.backgroundColor = .ypWhiteDay
-        title = "Статистика"
+        title = NSLocalizedString("statistics_title", comment: "Statistics screen title")
         navigationController?.navigationBar.prefersLargeTitles = true
     }
 }

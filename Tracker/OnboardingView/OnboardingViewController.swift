@@ -4,8 +4,8 @@ final class OnboardingViewController: UIPageViewController {
     // MARK: - Private Properties
     private lazy var pages: [UIViewController] = {
         let content = [
-            (image: "onboarding1", text: "Отслеживайте только то, что хотите"),
-            (image: "onboarding2", text: "Даже если это не литры воды и йога")
+            (image: "onboarding1", text: NSLocalizedString("onboarding_page1", comment: "Onboarding 1")),
+            (image: "onboarding2", text: NSLocalizedString("onboarding_page2", comment: "Onboarding 2"))
         ]
         
         return content.map { item in
@@ -40,7 +40,7 @@ final class OnboardingViewController: UIPageViewController {
     
     private let continueButton: UIButton = {
         let button = UIButton()
-        button.setTitle("Вот это технологии!", for: .normal)
+        button.setTitle(NSLocalizedString("onboarding_button", comment: "Onboarding button"), for: .normal)
         button.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
         button.setTitleColor(.ypWhiteDay, for: .normal)
         button.backgroundColor = .ypBlackDay

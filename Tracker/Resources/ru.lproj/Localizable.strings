@@ -1,0 +1,61 @@
+// Онбординг
+"onboarding_page1" = "Отслеживайте только то, что хотите";
+"onboarding_page2" = "Даже если это не литры воды и йога";
+"onboarding_button" = "Вот это технологии!";
+
+// Основные экраны
+"trackers_title" = "Трекеры";
+"statistics_title" = "Статистика";
+"search_placeholder" = "Поиск";
+"what_to_track" = "Что будем отслеживать?";
+"filters_button" = "Фильтры";
+
+// Экран создания трекера
+"new_habit_title" = "Новая привычка";
+"tracker_name_placeholder" = "Введите название трекера";
+"category_title" = "Категория";
+"schedule_title" = "Расписание";
+"emoji_section" = "Emoji";
+"color_section" = "Цвет";
+"cancel_button" = "Отменить";
+"create_button" = "Создать";
+
+// Категории
+"categories_title" = "Категория";
+"empty_categories" = "Привычки и события можно\nобъединить по смыслу";
+"add_category" = "Добавить категорию";
+"new_category_title" = "Новая категория";
+"category_placeholder" = "Введите название категории";
+"edit_category_title" = "Редактирование категории";
+"delete_category_message" = "Эта категория точно не нужна?";
+
+"edit_action" = "Редактировать";
+"delete_action" = "Удалить";
+"cancel_action" = "Отменить";
+
+// Экран расписания
+"schedule_screen_title" = "Расписание";
+"done_button" = "Готово";
+"every_day" = "Каждый день";
+
+// Дни недели (полные)
+"monday_full" = "Понедельник";
+"tuesday_full" = "Вторник";
+"wednesday_full" = "Среда";
+"thursday_full" = "Четверг";
+"friday_full" = "Пятница";
+"saturday_full" = "Суббота";
+"sunday_full" = "Воскресенье";
+
+// Дни недели (короткие)
+"monday_short" = "Пн";
+"tuesday_short" = "Вт";
+"wednesday_short" = "Ср";
+"thursday_short" = "Чт";
+"friday_short" = "Пт";
+"saturday_short" = "Сб";
+"sunday_short" = "Вс";
+
+// Ограничение символов
+"char_limit_error" = "Ограничение %d символов";
+"days_count" = "%d день";

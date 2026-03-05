@@ -27,7 +27,7 @@ final class ScheduleViewController: UIViewController {
     
     private lazy var doneButton: UIButton = {
         let button = UIButton()
-        button.setTitle("Готово", for: .normal)
+        button.setTitle(NSLocalizedString("done_button", comment: "Done button"), for: .normal)
         button.setTitleColor(.ypWhiteDay, for: .normal)
         button.backgroundColor = .ypBlackDay
         button.layer.cornerRadius = 16
@@ -48,7 +48,7 @@ final class ScheduleViewController: UIViewController {
     private func setupUI() {
         view.backgroundColor = .ypWhiteDay
         
-        title = "Расписание"
+        title = NSLocalizedString("schedule_title", comment: "Schedule screen title")
         navigationController?.navigationBar.prefersLargeTitles = false
         navigationItem.hidesBackButton = true
         
