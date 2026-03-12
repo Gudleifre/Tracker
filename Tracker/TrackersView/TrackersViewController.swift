@@ -6,6 +6,10 @@ final class TrackersViewController: UIViewController {
     private let categoryStore: TrackerCategoryStore
     private let recordStore: TrackerRecordStore
     
+    private var visibleCategories: [TrackerCategory] = []
+    private var isSearching: Bool = false
+    private var searchText: String = ""
+    
     private var currentDate = Date()
     private var trackersCollectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
     
@@ -28,7 +32,24 @@ final class TrackersViewController: UIViewController {
         searchController.hidesNavigationBarDuringPresentation = false
         searchController.obscuresBackgroundDuringPresentation = false
         searchController.searchBar.searchBarStyle = .minimal
+        searchController.searchResultsUpdater = self
         return searchController
+    }()
+    
+    private lazy var placeholderImageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.contentMode = .scaleAspectFit
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        return imageView
+    }()
+    
+    private lazy var placeholderLabel: UILabel = {
+        let label = UILabel()
+        label.textAlignment = .center
+        label.font = .systemFont(ofSize: 12, weight: .medium)
+        label.numberOfLines = 0
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
     }()
     
     private lazy var placeholderView: UIView = {
@@ -115,6 +136,7 @@ final class TrackersViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
+        visibleCategories = categories
         updatePlaceholderVisibility()
     }
     
@@ -125,8 +147,10 @@ final class TrackersViewController: UIViewController {
     
     // MARK: - Public Methods
     func updateUI() {
+        filterTrackers()
         trackersCollectionView.reloadData()
         updatePlaceholderVisibility()
+        updateFilterButtonVisibility()
     }
     
     // MARK: - Private Methods
@@ -135,15 +159,15 @@ final class TrackersViewController: UIViewController {
         
         title = NSLocalizedString("trackers_title", comment: "Trackers screen title")
         navigationController?.navigationBar.prefersLargeTitles = true
+        navigationItem.hidesSearchBarWhenScrolling = true
+        
         navigationItem.leftBarButtonItem = addButton
-        
         navigationItem.searchController = searchController
-        navigationItem.hidesSearchBarWhenScrolling = false
-        
-        setupPlaceholder()
+       
         setupDatePicker()
         setupTrackersCollection()
         setupFilterButton()
+        setupPlaceholder()
     }
     
     private func setupSearchBarAppearance() {
@@ -170,30 +194,19 @@ final class TrackersViewController: UIViewController {
     }
     
     private func setupPlaceholder() {
-        let imageView = UIImageView()
-        imageView.image = UIImage(resource: .placeholderForTrackers)
-        imageView.contentMode = .scaleAspectFit
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        
-        let label = UILabel()
-        label.text = NSLocalizedString("what_to_track", comment: "Placeholder text")
-        label.textAlignment = .center
-        label.font = UIFont.systemFont(ofSize: 12, weight: .medium)
-        label.translatesAutoresizingMaskIntoConstraints = false
-        
-        placeholderView.addSubview(imageView)
-        placeholderView.addSubview(label)
+        placeholderView.addSubview(placeholderImageView)
+        placeholderView.addSubview(placeholderLabel)
         view.addSubview(placeholderView)
         
         NSLayoutConstraint.activate([
-            imageView.centerXAnchor.constraint(equalTo: placeholderView.centerXAnchor),
-            imageView.centerYAnchor.constraint(equalTo: placeholderView.centerYAnchor, constant: -20),
+            placeholderImageView.centerXAnchor.constraint(equalTo: placeholderView.centerXAnchor),
+            placeholderImageView.centerYAnchor.constraint(equalTo: placeholderView.centerYAnchor, constant: -20),
             
-            imageView.widthAnchor.constraint(equalToConstant: 80),
-            imageView.heightAnchor.constraint(equalToConstant: 80),
+            placeholderImageView.widthAnchor.constraint(equalToConstant: 80),
+            placeholderImageView.heightAnchor.constraint(equalToConstant: 80),
             
-            label.topAnchor.constraint(equalTo: imageView.bottomAnchor, constant: 8),
-            label.centerXAnchor.constraint(equalTo: placeholderView.centerXAnchor),
+            placeholderLabel.topAnchor.constraint(equalTo: placeholderImageView.bottomAnchor, constant: 8),
+            placeholderLabel.centerXAnchor.constraint(equalTo: placeholderView.centerXAnchor),
             
             placeholderView.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor),
             placeholderView.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerYAnchor),
@@ -240,12 +253,23 @@ final class TrackersViewController: UIViewController {
         filterButton.isHidden = !hasTrackers
     }
     
-    private func showPlaceholder() {
+    private func showEmptyPlaceholder() {
+        placeholderImageView.image = UIImage(resource: .placeholderForTrackers)
+        placeholderLabel.text = NSLocalizedString("what_to_track", comment: "Что будем отслеживать?")
         placeholderView.isHidden = false
+        filterButton.isHidden = true
     }
     
+    private func showNoResultsPlaceholder() {
+        placeholderImageView.image = UIImage(resource: .searchPlaceholder)
+        placeholderLabel.text = NSLocalizedString("nothing_found", comment: "Ничего не найдено")
+        placeholderView.isHidden = false
+        filterButton.isHidden = true
+    }
+
     private func hidePlaceholder() {
         placeholderView.isHidden = true
+        filterButton.isHidden = false
     }
     
     private func completeTracker(id: UUID, date: Date) {
@@ -286,23 +310,50 @@ final class TrackersViewController: UIViewController {
     }
     
     private func updatePlaceholderVisibility() {
-        let totalTrackers = filteredTrackers.count
+        let hasTrackers = !visibleCategories.flatMap { $0.trackers }.isEmpty
         
-        if totalTrackers == 0 {
-            showPlaceholder()
-            filterButton.isHidden = true
-        } else {
+        if hasTrackers {
             hidePlaceholder()
-            filterButton.isHidden = false
+        } else {
+            if isSearching && !searchText.isEmpty {
+                showNoResultsPlaceholder()
+            } else {
+                showEmptyPlaceholder()
+            }
         }
+    }
+    
+    private func filterTrackers() {
+        guard !searchText.isEmpty else {
+            visibleCategories = categories
+            isSearching = false
+            trackersCollectionView.reloadData()
+            updatePlaceholderVisibility()
+            return
+        }
+        
+        isSearching = true
+        
+        let filteredCategories = categories.compactMap { category -> TrackerCategory? in
+            let filteredTrackers = category.trackers.filter { tracker in
+                tracker.title.localizedCaseInsensitiveContains(searchText)
+            }
+            
+            return filteredTrackers.isEmpty ? nil : TrackerCategory(
+                title: category.title,
+                trackers: filteredTrackers
+            )
+        }
+        
+        visibleCategories = filteredCategories
+        trackersCollectionView.reloadData()
+        updatePlaceholderVisibility()
     }
     
     // MARK: - @objc Methods
     @objc func datePickerValueChanged(_ sender: UIDatePicker) {
         currentDate = sender.date.dateOnly
-        trackersCollectionView.reloadData()
-        updatePlaceholderVisibility()
-        updateFilterButtonVisibility()
+        filterTrackers()
     }
     
     @objc private func addButtonTapped(_ sender: UIButton) {
@@ -318,10 +369,10 @@ final class TrackersViewController: UIViewController {
         let section = tag / 100
         let row = tag % 100
         
-        guard section < categories.count,
-              row < categories[section].trackers.count else { return }
+        guard section < visibleCategories.count,
+              row < visibleCategories[section].trackers.count else { return }
         
-        let tracker = categories[section].trackers[row]
+        let tracker = visibleCategories[section].trackers[row]
         
         if currentDate > Date() {
             return
@@ -341,20 +392,21 @@ final class TrackersViewController: UIViewController {
         // TODO: - process code
     }
 }
+
 // MARK: - Extensions
 extension TrackersViewController: UICollectionViewDataSource {
     func numberOfSections(in collectionView: UICollectionView) -> Int {
-        categories.count
+        visibleCategories.count
     }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        categories[section].trackers.count
+        visibleCategories[section].trackers.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: TrackersViewCell.identifier, for: indexPath) as? TrackersViewCell else { return UICollectionViewCell() }
         
-        let tracker = categories[indexPath.section].trackers[indexPath.row]
+        let tracker = visibleCategories[indexPath.section].trackers[indexPath.row]
         let isCompleted = isTrackerCompleted(id: tracker.id, on: currentDate)
         let completedDays = completedDaysCount(for: tracker.id)
         
@@ -376,7 +428,7 @@ extension TrackersViewController: UICollectionViewDataSource {
             return UICollectionReusableView()
         }
         
-        let category = categories[indexPath.section]
+        let category = visibleCategories[indexPath.section]
         header.configure(withTitle: category.title)
         return header
     }
@@ -389,7 +441,7 @@ extension TrackersViewController: UICollectionViewDelegateFlowLayout {
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
-        return categories[section].trackers.isEmpty ? .zero : CGSize(width: collectionView.bounds.width, height: 33)
+        return visibleCategories[section].trackers.isEmpty ? .zero : CGSize(width: collectionView.bounds.width, height: 33)
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
@@ -441,5 +493,12 @@ extension TrackersViewController: TrackerRecordStoreDelegate {
         DispatchQueue.main.async {
             self.updateUI()
         }
+    }
+}
+
+extension TrackersViewController: UISearchResultsUpdating {
+    func updateSearchResults(for searchController: UISearchController) {
+        searchText = searchController.searchBar.text ?? ""
+        filterTrackers()
     }
 }

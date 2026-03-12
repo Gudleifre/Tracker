@@ -8,6 +8,7 @@
 "statistics_title" = "Статистика";
 "search_placeholder" = "Поиск";
 "what_to_track" = "Что будем отслеживать?";
+"nothing_found" = "Ничего не найдено";
 "filters_button" = "Фильтры";
 
 // Экран создания трекера

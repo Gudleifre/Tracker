@@ -7,6 +7,7 @@
 "statistics_title" = "Statistics";
 "search_placeholder" = "Search";
 "what_to_track" = "What would you like to track?";
+"nothing_found" = "Nothing found";
 "filters_button" = "Filters";
 
 // Экран создания трекера
