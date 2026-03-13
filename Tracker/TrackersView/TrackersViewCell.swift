@@ -86,6 +86,31 @@ final class TrackersViewCell: UICollectionViewCell {
         daysCountLabel.text = daysString
     }
     
+    func createPreview(with tracker: Tracker) -> UIView {
+        let preview = UIView(frame: CGRect(x: 0, y: 0, width: 167, height: 90))
+        preview.backgroundColor = tracker.color
+        preview.layer.cornerRadius = 16
+        preview.clipsToBounds = true
+        
+        let emojiLabel = UILabel(frame: CGRect(x: 12, y: 12, width: 28, height: 28))
+        emojiLabel.text = tracker.emoji
+        emojiLabel.font = .systemFont(ofSize: 14)
+        emojiLabel.textAlignment = .center
+        emojiLabel.backgroundColor = .white.withAlphaComponent(0.3)
+        emojiLabel.layer.cornerRadius = 14
+        emojiLabel.clipsToBounds = true
+        preview.addSubview(emojiLabel)
+        
+        let titleLabel = UILabel(frame: CGRect(x: 12, y: 48, width: 143, height: 34))
+        titleLabel.text = tracker.title
+        titleLabel.font = .systemFont(ofSize: 12, weight: .medium)
+        titleLabel.textColor = .white
+        titleLabel.numberOfLines = 2
+        preview.addSubview(titleLabel)
+        
+        return preview
+    }
+    
     // MARK: - Private Methods
     private func setupUI() {
         contentView.addSubview(coloredView)

@@ -10,9 +10,11 @@
 "what_to_track" = "Что будем отслеживать?";
 "nothing_found" = "Ничего не найдено";
 "filters_button" = "Фильтры";
+"delete_tracker_title" = "Уверены что хотите удалить трекер?";
 
 // Экран создания трекера
 "new_habit_title" = "Новая привычка";
+"edit_habit_title" = "Редактирование привычки";
 "tracker_name_placeholder" = "Введите название трекера";
 "category_title" = "Категория";
 "schedule_title" = "Расписание";

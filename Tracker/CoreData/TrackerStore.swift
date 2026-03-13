@@ -27,6 +27,17 @@ final class TrackerStore: NSObject {
         fetchedResultsController?.sections?.count ?? 0
     }
     
+    func saveContext() {
+        guard context.hasChanges else {
+            return
+        }
+        do {
+            try context.save()
+        } catch {
+            print("Save error: \(error)")
+        }
+    }
+    
     func numberOfItems(in section: Int) -> Int {
         guard let sections = fetchedResultsController?.sections else { return 0 }
         return sections[section].numberOfObjects
@@ -46,6 +57,15 @@ final class TrackerStore: NSObject {
         tracker.isPinned = false
         tracker.category = category
         
+        saveContext()
+    }
+    
+    func deleteTracker(_ tracker: TrackerCoreData) {
+        if let records = tracker.records as? Set<TrackerRecordCoreData> {
+            records.forEach { context.delete($0) }
+        }
+        
+        context.delete(tracker)
         saveContext()
     }
     
@@ -72,17 +92,6 @@ final class TrackerStore: NSObject {
             try controller.performFetch()
         } catch {
             print("Error fetch: \(error)")
-        }
-    }
-    
-    private func saveContext() {
-        guard context.hasChanges else {
-            return
-        }
-        do {
-            try context.save()
-        } catch {
-            print("Save error: \(error)")
         }
     }
 }

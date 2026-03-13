@@ -2,9 +2,18 @@ import UIKit
 
 protocol NewTrackerViewControllerDelegate: AnyObject {
     func didCreateTracker(_ tracker: Tracker, category: String)
+    func didUpdateTracker(_ tracker: Tracker, category: String)
+}
+
+enum TrackerMode {
+    case create
+    case edit
 }
 
 final class NewTrackerViewController: UIViewController {
+    // MARK: - Public Properties
+    var mode: TrackerMode = .create
+    var trackerToEdit: Tracker?
     weak var delegate: NewTrackerViewControllerDelegate?
     
     // MARK: - Private Properties
@@ -148,6 +157,19 @@ final class NewTrackerViewController: UIViewController {
         setupActions()
         hideKeyboardWhenTappedAround()
         updateCreateButtonState()
+        
+        if mode == .edit, let tracker = trackerToEdit {
+            title = NSLocalizedString("edit_habit_title", comment: "Edit habit screen title")
+            titleTextField.text = tracker.title
+            selectedEmoji = tracker.emoji
+            selectedColor = tracker.color
+            selectedSchedule = tracker.schedule
+            selectedCategory = tracker.category
+            
+            updateUIForEditMode()
+        } else {
+            title = NSLocalizedString("new_habit_title", comment: "New habit screen title")
+        }
     }
     
     override func viewDidLayoutSubviews() {
@@ -159,7 +181,6 @@ final class NewTrackerViewController: UIViewController {
     private func setupUI() {
         view.backgroundColor = .ypWhiteDay
         
-        title = NSLocalizedString("new_habit_title", comment: "New habit screen title")
         navigationController?.navigationBar.prefersLargeTitles = false
         navigationController?.navigationBar.titleTextAttributes = [
             .font: UIFont.systemFont(ofSize: 16, weight: .medium),
@@ -319,17 +340,30 @@ final class NewTrackerViewController: UIViewController {
               !selectedSchedule.isEmpty,
               let selectedCategory else { return }
         
-        let newTracker = Tracker(
-            id: UUID(),
-            title: title,
-            color: selectedColor,
-            emoji: selectedEmoji,
-            schedule: selectedSchedule,
-            isPinned: false,
-            category: selectedCategory
-        )
-        
-        delegate?.didCreateTracker(newTracker, category: selectedCategory)
+        if mode == .edit, let trackerToEdit {
+            let updatedTracker = Tracker(
+                id: trackerToEdit.id,
+                title: title,
+                color: selectedColor,
+                emoji: selectedEmoji,
+                schedule: selectedSchedule,
+                isPinned: trackerToEdit.isPinned,
+                category: selectedCategory
+            )
+            delegate?.didUpdateTracker(updatedTracker, category: selectedCategory)
+        } else {
+            let newTracker = Tracker(
+                id: UUID(),
+                title: title,
+                color: selectedColor,
+                emoji: selectedEmoji,
+                schedule: selectedSchedule,
+                isPinned: false,
+                category: selectedCategory
+            )
+            
+            delegate?.didCreateTracker(newTracker, category: selectedCategory)
+        }
         dismiss(animated: true)
     }
     
@@ -354,6 +388,18 @@ final class NewTrackerViewController: UIViewController {
         
         let categoriesVC = CategoriesViewController(viewModel: categoriesVM)
         navigationController?.pushViewController(categoriesVC, animated: true)
+    }
+    
+    private func updateUIForEditMode() {
+        if let emoji = selectedEmoji, let index = MockData.emojis.firstIndex(of: emoji) {
+            let indexPath = IndexPath(item: index, section: 0)
+            emojiCollectionView.selectItem(at: indexPath, animated: false, scrollPosition: [])
+        }
+        
+        if let color = selectedColor, let index = MockData.colors.firstIndex(where: { $0 == color }) {
+            let indexPath = IndexPath(item: index, section: 0)
+            colorCollectionView.selectItem(at: indexPath, animated: false, scrollPosition: [])
+        }
     }
 }
 

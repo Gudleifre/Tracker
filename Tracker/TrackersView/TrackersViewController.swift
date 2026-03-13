@@ -163,7 +163,7 @@ final class TrackersViewController: UIViewController {
         
         navigationItem.leftBarButtonItem = addButton
         navigationItem.searchController = searchController
-       
+        
         setupDatePicker()
         setupTrackersCollection()
         setupFilterButton()
@@ -255,18 +255,18 @@ final class TrackersViewController: UIViewController {
     
     private func showEmptyPlaceholder() {
         placeholderImageView.image = UIImage(resource: .placeholderForTrackers)
-        placeholderLabel.text = NSLocalizedString("what_to_track", comment: "Что будем отслеживать?")
+        placeholderLabel.text = NSLocalizedString("what_to_track", comment: "trackers placeholder label")
         placeholderView.isHidden = false
         filterButton.isHidden = true
     }
     
     private func showNoResultsPlaceholder() {
         placeholderImageView.image = UIImage(resource: .searchPlaceholder)
-        placeholderLabel.text = NSLocalizedString("nothing_found", comment: "Ничего не найдено")
+        placeholderLabel.text = NSLocalizedString("nothing_found", comment: "search placeholder label")
         placeholderView.isHidden = false
         filterButton.isHidden = true
     }
-
+    
     private func hidePlaceholder() {
         placeholderView.isHidden = true
         filterButton.isHidden = false
@@ -470,6 +470,19 @@ extension TrackersViewController: NewTrackerViewControllerDelegate {
         
         dismiss(animated: true)
     }
+    
+    func didUpdateTracker(_ tracker: Tracker, category: String) {
+        guard let trackerToUpdate = allTrackers.first(where: { $0.id == tracker.id }) else { return }
+        
+        trackerToUpdate.title = tracker.title
+        trackerToUpdate.emoji = tracker.emoji
+        trackerToUpdate.color = tracker.color
+        trackerToUpdate.schedule = tracker.schedule as NSObject
+        trackerToUpdate.category = categoryStore.fetchOrCreateCategory(title: category)
+        
+        trackerStore.saveContext()
+        dismiss(animated: true)
+    }
 }
 
 extension TrackersViewController: TrackerStoreDelegate {
@@ -500,5 +513,89 @@ extension TrackersViewController: UISearchResultsUpdating {
     func updateSearchResults(for searchController: UISearchController) {
         searchText = searchController.searchBar.text ?? ""
         filterTrackers()
+    }
+}
+
+extension TrackersViewController: UICollectionViewDelegate {
+    
+    func collectionView(_ collectionView: UICollectionView,
+                        contextMenuConfigurationForItemAt indexPath: IndexPath,
+                        point: CGPoint) -> UIContextMenuConfiguration? {
+        
+        let tracker = visibleCategories[indexPath.section].trackers[indexPath.row]
+        
+        guard let cell = collectionView.cellForItem(at: indexPath) as? TrackersViewCell else {
+            return nil
+        }
+        
+        return UIContextMenuConfiguration(identifier: nil, previewProvider: {
+            let previewController = UIViewController()
+            previewController.view.addSubview(cell.createPreview(with: tracker))
+            previewController.preferredContentSize = CGSize(width: 167, height: 90)
+            return previewController
+        }) { [weak self] _ in
+            
+            let editAction = UIAction(
+                title: NSLocalizedString("edit_action", comment: "Edit"),
+                image: nil
+            ) { _ in
+                self?.editTracker(tracker)
+            }
+            
+            let deleteAction = UIAction(
+                title: NSLocalizedString("delete_action", comment: "Delete"),
+                image: nil,
+                attributes: .destructive
+            ) { [weak self] _ in
+                self?.showDeleteConfirmation(for: tracker)
+            }
+            
+            return UIMenu(title: "", children: [editAction, deleteAction])
+        }
+    }
+}
+
+extension TrackersViewController {
+    private func editTracker(_ tracker: Tracker) {
+        let editVC = NewTrackerViewController()
+        editVC.mode = .edit
+        editVC.trackerToEdit = tracker
+        editVC.delegate = self
+        let navController = UINavigationController(rootViewController: editVC)
+        present(navController, animated: true)
+        
+    }
+    
+    private func showDeleteConfirmation(for tracker: Tracker) {
+        let alert = UIAlertController(
+            title: NSLocalizedString("delete_tracker_title", comment: "Delete tracker"),
+            message: nil,
+            preferredStyle: .actionSheet
+        )
+        
+        let deleteAction = UIAlertAction(
+            title: NSLocalizedString("delete_action", comment: "Delete"),
+            style: .destructive
+        ) { [weak self] _ in
+            self?.deleteTracker(tracker)
+        }
+        
+        let cancelAction = UIAlertAction(
+            title: NSLocalizedString("cancel_action", comment: "Cancel"),
+            style: .cancel
+        )
+        
+        alert.addAction(deleteAction)
+        alert.addAction(cancelAction)
+        
+        present(alert, animated: true)
+    }
+    
+    private func deleteTracker(_ tracker: Tracker) {
+        
+        guard let trackerToDelete = allTrackers.first(where: { $0.id == tracker.id }) else {
+            return
+        }
+        trackerStore.deleteTracker(trackerToDelete)
     }
 }

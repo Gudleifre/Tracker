@@ -1,3 +1,4 @@
+// Онбординг
 "onboarding_page1" = "Track only what you want";
 "onboarding_page2" = "Even if it's not liters of water and yoga";
 "onboarding_button" = "That's the technology!";
@@ -9,9 +10,11 @@
 "what_to_track" = "What would you like to track?";
 "nothing_found" = "Nothing found";
 "filters_button" = "Filters";
+"delete_tracker_title" = "Are you sure you want to delete the tracker?";
 
 // Экран создания трекера
 "new_habit_title" = "New Habit";
+"edit_habit_title" = "Edit habit";
 "tracker_name_placeholder" = "Enter tracker name";
 "category_title" = "Category";
 "schedule_title" = "Schedule";
