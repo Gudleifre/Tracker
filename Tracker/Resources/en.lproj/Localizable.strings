@@ -62,3 +62,10 @@
 // Ограничение символов
 "char_limit_error" = "Limit %d characters";
 "days_count" = "%d day";
+
+// Фильтры
+"filters_title" = "Filters";
+"filter_all" = "All trackers";
+"filter_today" = "Trackers for today";
+"filter_completed" = "Completed";
+"filter_uncompleted" = "Uncompleted";

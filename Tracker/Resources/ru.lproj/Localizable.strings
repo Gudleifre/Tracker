@@ -62,3 +62,10 @@
 // Ограничение символов
 "char_limit_error" = "Ограничение %d символов";
 "days_count" = "%d день";
+
+// Фильтры
+"filters_title" = "Фильтры";
+"filter_all" = "Все трекеры";
+"filter_today" = "Трекеры на сегодня";
+"filter_completed" = "Завершённые";
+"filter_uncompleted" = "Незавершённые";

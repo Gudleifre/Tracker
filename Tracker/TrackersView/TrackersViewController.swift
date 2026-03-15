@@ -10,6 +10,10 @@ final class TrackersViewController: UIViewController {
     private var isSearching: Bool = false
     private var searchText: String = ""
     
+    private var currentFilter: TrackerFilter = .all
+    private let filterStorage = UserDefaults.standard
+    private let filterKey = "selected_filter"
+    
     private var currentDate = Date()
     private var trackersCollectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
     
@@ -138,6 +142,7 @@ final class TrackersViewController: UIViewController {
         setupUI()
         visibleCategories = categories
         updatePlaceholderVisibility()
+        loadSavedFilter()
     }
     
     override func viewDidLayoutSubviews() {
@@ -186,7 +191,6 @@ final class TrackersViewController: UIViewController {
                         textField.clipsToBounds = true
                         textField.font = .systemFont(ofSize: 17, weight: .regular)
                     }
-                    
                     return
                 }
             }
@@ -227,6 +231,9 @@ final class TrackersViewController: UIViewController {
         trackersCollectionView.dataSource = self
         trackersCollectionView.delegate = self
         trackersCollectionView.backgroundColor = .clear
+        trackersCollectionView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 80, right: 0)
+        trackersCollectionView.scrollIndicatorInsets = trackersCollectionView.contentInset
+        
         view.addSubview(trackersCollectionView)
         
         NSLayoutConstraint.activate([
@@ -246,11 +253,23 @@ final class TrackersViewController: UIViewController {
             filterButton.widthAnchor.constraint(equalToConstant: 114),
             filterButton.heightAnchor.constraint(equalToConstant: 50)
         ])
+        
+        view.bringSubviewToFront(filterButton)
     }
     
     private func updateFilterButtonVisibility() {
         let hasTrackers = !filteredTrackers.isEmpty
         filterButton.isHidden = !hasTrackers
+    }
+    
+    private func showAppropriatePlaceholder() {
+        if isSearching && !searchText.isEmpty {
+            showNoResultsPlaceholder()
+        } else if currentFilter == .completed || currentFilter == .uncompleted {
+            showNoResultsPlaceholder()
+        } else {
+            showEmptyPlaceholder()
+        }
     }
     
     private func showEmptyPlaceholder() {
@@ -270,6 +289,23 @@ final class TrackersViewController: UIViewController {
     private func hidePlaceholder() {
         placeholderView.isHidden = true
         filterButton.isHidden = false
+    }
+    
+    private func updatePlaceholderVisibility() {
+        let hasTrackers = !visibleCategories.flatMap { $0.trackers }.isEmpty
+        if hasTrackers {
+            hidePlaceholder()
+        } else {
+            filterButton.isHidden = true
+            
+            if isSearching {
+                showNoResultsPlaceholder()
+            } else if currentFilter == .completed || currentFilter == .uncompleted {
+                showNoResultsPlaceholder()
+            } else {
+                showEmptyPlaceholder()
+            }
+        }
     }
     
     private func completeTracker(id: UUID, date: Date) {
@@ -309,46 +345,65 @@ final class TrackersViewController: UIViewController {
         datePicker.addTarget(self, action: #selector(datePickerValueChanged(_:)), for: .valueChanged)
     }
     
-    private func updatePlaceholderVisibility() {
-        let hasTrackers = !visibleCategories.flatMap { $0.trackers }.isEmpty
-        
-        if hasTrackers {
-            hidePlaceholder()
-        } else {
-            if isSearching && !searchText.isEmpty {
-                showNoResultsPlaceholder()
-            } else {
-                showEmptyPlaceholder()
-            }
-        }
-    }
-    
     private func filterTrackers() {
-        guard !searchText.isEmpty else {
-            visibleCategories = categories
-            isSearching = false
-            trackersCollectionView.reloadData()
-            updatePlaceholderVisibility()
-            return
+        isSearching = !(searchController.searchBar.text?.isEmpty ?? true)
+        
+        var filteredByDate = filteredTrackers
+        
+        switch currentFilter {
+        case .all, .today:
+            break
+        case .completed:
+            filteredByDate = filteredByDate.filter { tracker in
+                isTrackerCompleted(id: tracker.id ?? UUID(), on: currentDate)
+            }
+        case .uncompleted:
+            filteredByDate = filteredByDate.filter { tracker in
+                !isTrackerCompleted(id: tracker.id ?? UUID(), on: currentDate)
+            }
         }
         
-        isSearching = true
+        let grouped = Dictionary(grouping: filteredByDate) { tracker in
+            tracker.category?.title ?? ""
+        }
         
-        let filteredCategories = categories.compactMap { category -> TrackerCategory? in
-            let filteredTrackers = category.trackers.filter { tracker in
-                tracker.title.localizedCaseInsensitiveContains(searchText)
-            }
-            
-            return filteredTrackers.isEmpty ? nil : TrackerCategory(
-                title: category.title,
-                trackers: filteredTrackers
+        var filteredCategories = grouped.map { title, trackers in
+            TrackerCategory(
+                title: title,
+                trackers: trackers.map { tracker in
+                    Tracker(
+                        id: tracker.id ?? UUID(),
+                        title: tracker.title ?? "",
+                        color: tracker.color as? UIColor ?? .systemBlue,
+                        emoji: tracker.emoji ?? "",
+                        schedule: (tracker.schedule as? [Weekday]) ?? [],
+                        isPinned: tracker.isPinned,
+                        category: title
+                    )
+                }
             )
+        }.sorted { $0.title < $1.title }
+        
+        let searchText = searchController.searchBar.text ?? ""
+        if !searchText.isEmpty {
+            filteredCategories = filteredCategories.compactMap { category in
+                let filtered = category.trackers.filter {
+                    $0.title.localizedCaseInsensitiveContains(searchText)
+                }
+                return filtered.isEmpty ? nil : TrackerCategory(title: category.title, trackers: filtered)
+            }
         }
         
         visibleCategories = filteredCategories
         trackersCollectionView.reloadData()
         updatePlaceholderVisibility()
     }
+    
+    private func loadSavedFilter() {
+        let savedValue = filterStorage.integer(forKey: filterKey)
+        currentFilter = TrackerFilter(rawValue: savedValue) ?? .all
+    }
+    
     
     // MARK: - @objc Methods
     @objc func datePickerValueChanged(_ sender: UIDatePicker) {
@@ -389,7 +444,10 @@ final class TrackersViewController: UIViewController {
     }
     
     @objc private func filterButtonTapped() {
-        // TODO: - process code
+        let filterVC = FiltersViewController(selectedFilter: currentFilter)
+        filterVC.delegate = self
+        let navController = UINavigationController(rootViewController: filterVC)
+        present(navController, animated: true)
     }
 }
 
@@ -597,5 +655,50 @@ extension TrackersViewController {
             return
         }
         trackerStore.deleteTracker(trackerToDelete)
+    }
+    
+    private func saveFilter() {
+        filterStorage.set(currentFilter.rawValue, forKey: filterKey)
+    }
+}
+
+extension TrackersViewController: FiltersViewControllerDelegate {
+    func didSelectFilter(_ filter: TrackerFilter) {
+        currentFilter = filter
+        saveFilter()
+        
+        switch filter {
+        case .all:
+            applyFilter()
+            
+        case .today:
+            if let datePicker = navigationItem.rightBarButtonItem?.customView as? UIDatePicker {
+                datePicker.date = Date()
+                datePicker.sendActions(for: .valueChanged)
+            }
+            applyFilter()
+            
+        case .completed, .uncompleted:
+            applyFilter()
+        }
+        
+        updateFilterButtonAppearance()
+    }
+    
+    private func applyFilter() {
+        filterTrackers()
+        updatePlaceholderVisibility()
+        updateFilterButtonAppearance()
+    }
+    
+    private func updateFilterButtonAppearance() {
+        switch currentFilter {
+        case .all, .today:
+            filterButton.backgroundColor = .ypBlue
+            filterButton.setTitleColor(.ypWhiteDay, for: .normal)
+        case .completed, .uncompleted:
+            filterButton.backgroundColor = .ypRed
+            filterButton.setTitleColor(.ypWhiteDay, for: .normal)
+        }
     }
 }
