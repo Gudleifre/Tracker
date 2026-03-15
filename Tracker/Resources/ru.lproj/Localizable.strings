@@ -32,7 +32,9 @@
 "edit_category_title" = "Редактирование категории";
 "delete_category_message" = "Эта категория точно не нужна?";
 
+// Действия
 "edit_action" = "Редактировать";
+"save_button" = "Сохранить";
 "delete_action" = "Удалить";
 "cancel_action" = "Отменить";
 

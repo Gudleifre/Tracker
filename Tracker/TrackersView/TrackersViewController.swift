@@ -66,7 +66,7 @@ final class TrackersViewController: UIViewController {
     private lazy var filterButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle(NSLocalizedString("filters_button", comment: "Filters button"), for: .normal)
-        button.setTitleColor(.ypWhiteDay, for: .normal)
+        button.setTitleColor(.ypWhiteStatic, for: .normal)
         button.backgroundColor = .ypBlue
         button.titleLabel?.font = .systemFont(ofSize: 17, weight: .regular)
         button.layer.cornerRadius = 16
@@ -695,10 +695,10 @@ extension TrackersViewController: FiltersViewControllerDelegate {
         switch currentFilter {
         case .all, .today:
             filterButton.backgroundColor = .ypBlue
-            filterButton.setTitleColor(.ypWhiteDay, for: .normal)
+            filterButton.setTitleColor(.ypWhiteStatic, for: .normal)
         case .completed, .uncompleted:
             filterButton.backgroundColor = .ypRed
-            filterButton.setTitleColor(.ypWhiteDay, for: .normal)
+            filterButton.setTitleColor(.ypWhiteStatic, for: .normal)
         }
     }
 }

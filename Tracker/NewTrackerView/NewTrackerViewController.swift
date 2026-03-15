@@ -131,7 +131,7 @@ final class NewTrackerViewController: UIViewController {
     private lazy var createButton: UIButton = {
         let button = UIButton()
         button.setTitle(NSLocalizedString("create_button", comment: "Create button"), for: .normal)
-        button.setTitleColor(.ypWhiteDay, for: .normal)
+        button.setTitleColor(.ypWhiteStatic, for: .normal)
         button.backgroundColor = .ypGray
         button.layer.cornerRadius = 16
         button.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
@@ -160,6 +160,7 @@ final class NewTrackerViewController: UIViewController {
         
         if mode == .edit, let tracker = trackerToEdit {
             title = NSLocalizedString("edit_habit_title", comment: "Edit habit screen title")
+            createButton.setTitle(NSLocalizedString("save_button", comment: "Save"), for: .normal)
             titleTextField.text = tracker.title
             selectedEmoji = tracker.emoji
             selectedColor = tracker.color
@@ -169,6 +170,7 @@ final class NewTrackerViewController: UIViewController {
             updateUIForEditMode()
         } else {
             title = NSLocalizedString("new_habit_title", comment: "New habit screen title")
+            createButton.setTitle(NSLocalizedString("create_button", comment: "Create"), for: .normal)
         }
     }
     
@@ -314,7 +316,13 @@ final class NewTrackerViewController: UIViewController {
         let isReadyToCreate = hasText && hasCategory && hasSchedule && hasEmoji && hasColor
         
         createButton.isEnabled = isReadyToCreate
-        createButton.backgroundColor = isReadyToCreate ? .ypBlackDay : .ypGray
+        if isReadyToCreate {
+            createButton.backgroundColor = .ypBlackDay
+            createButton.setTitleColor(.ypWhiteDay, for: .normal)
+        } else {
+            createButton.backgroundColor = .ypGray
+            createButton.setTitleColor(.ypWhiteStatic, for: .normal)
+        }
     }
     
     private func textFieldDidChange() {
