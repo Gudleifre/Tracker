@@ -182,8 +182,8 @@ final class CategoriesViewController: UIViewController {
         let deleteAction = UIAlertAction(
             title: NSLocalizedString("delete_action", comment: "Delete button"),
             style: .destructive) { [weak self] _ in
-            self?.viewModel.deleteCategory(at: indexPath.row)
-        }
+                self?.viewModel.deleteCategory(at: indexPath.row)
+            }
         
         let cancelAction = UIAlertAction(
             title: NSLocalizedString("cancel_action", comment: "Cancel button"),

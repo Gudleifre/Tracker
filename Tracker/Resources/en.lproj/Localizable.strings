@@ -5,12 +5,18 @@
 
 // Основные экраны
 "trackers_title" = "Trackers";
-"statistics_title" = "Statistics";
 "search_placeholder" = "Search";
 "what_to_track" = "What would you like to track?";
 "nothing_found" = "Nothing found";
 "filters_button" = "Filters";
 "delete_tracker_title" = "Are you sure you want to delete the tracker?";
+
+"statistics_title" = "Statistics";
+"best_period" = "Best period";
+"perfect_days" = "Perfect days";
+"completed_trackers" = "Completed trackers";
+"average_value" = "Average value";
+"statistics_empty" = "Nothing to analyze yet";
 
 // Экран создания трекера
 "new_habit_title" = "New Habit";

@@ -321,6 +321,8 @@ final class TrackersViewController: UIViewController {
     private func completeTracker(id: UUID, date: Date) {
         guard let tracker = allTrackers.first(where: { $0.id == id }) else { return }
         _ = recordStore.addRecord(tracker: tracker, date: date)
+        
+        updateStatistics()
     }
     
     private func uncompleteTracker(id: UUID, date: Date) {
@@ -331,7 +333,36 @@ final class TrackersViewController: UIViewController {
             Calendar.current.isDate($0.date ?? Date(), inSameDayAs: date)
         }) {
             recordStore.deleteRecord(record)
+            
+            updateStatistics()
         }
+    }
+    
+    private func updateStatistics() {
+        let records = allRecords
+        let trackers = allTrackers
+        
+        // 1. Трекеров завершено
+        let completedCount = records.count
+        StatisticsStorage.shared.completedCount = completedCount
+        
+        // 2. Лучший период (максимальное количество выполнений за день)
+        let recordsByDate = Dictionary(grouping: records) {
+            Calendar.current.startOfDay(for: $0.date ?? Date())
+        }
+        let bestPeriod = recordsByDate.values.map { $0.count }.max() ?? 0
+        StatisticsStorage.shared.bestPeriod = bestPeriod
+        
+        // 3. Идеальные дни (дни, когда выполнены все треки)
+        let totalTrackers = trackers.count
+        let perfectDays = recordsByDate.filter { $0.value.count == totalTrackers }.count
+        StatisticsStorage.shared.perfectDays = perfectDays
+        
+        // 4. Среднее значение
+        let average = totalTrackers > 0 ? Double(completedCount) / Double(totalTrackers) : 0
+        StatisticsStorage.shared.averageValue = average
+        
+        NotificationCenter.default.post(name: .statisticsDidUpdate, object: nil)
     }
     
     private func isTrackerCompleted(id: UUID, on date: Date) -> Bool {
