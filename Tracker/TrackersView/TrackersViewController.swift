@@ -145,6 +145,16 @@ final class TrackersViewController: UIViewController {
         loadSavedFilter()
     }
     
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        AnalyticsService.reportEvent(screen: "Main", event: "open")
+    }
+
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        AnalyticsService.reportEvent(screen: "Main", event: "close")
+    }
+    
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         setupSearchBarAppearance()
@@ -412,6 +422,7 @@ final class TrackersViewController: UIViewController {
     }
     
     @objc private func addButtonTapped(_ sender: UIButton) {
+        AnalyticsService.reportClick(screen: "Main", item: "add_track")
         let newTrackerVC = NewTrackerViewController()
         let navController = UINavigationController(rootViewController: newTrackerVC)
         
@@ -420,6 +431,7 @@ final class TrackersViewController: UIViewController {
     }
     
     @objc private func plusButtonTapped(_ sender: UIButton) {
+        AnalyticsService.reportClick(screen: "Main", item: "track")
         let tag = sender.tag
         let section = tag / 100
         let row = tag % 100
@@ -444,6 +456,7 @@ final class TrackersViewController: UIViewController {
     }
     
     @objc private func filterButtonTapped() {
+        AnalyticsService.reportClick(screen: "Main", item: "filter")
         let filterVC = FiltersViewController(selectedFilter: currentFilter)
         filterVC.delegate = self
         let navController = UINavigationController(rootViewController: filterVC)
@@ -615,6 +628,7 @@ extension TrackersViewController: UICollectionViewDelegate {
 
 extension TrackersViewController {
     private func editTracker(_ tracker: Tracker) {
+        AnalyticsService.reportClick(screen: "Main", item: "edit")
         let editVC = NewTrackerViewController()
         editVC.mode = .edit
         editVC.trackerToEdit = tracker
@@ -625,6 +639,7 @@ extension TrackersViewController {
     }
     
     private func showDeleteConfirmation(for tracker: Tracker) {
+        AnalyticsService.reportClick(screen: "Main", item: "delete")
         let alert = UIAlertController(
             title: NSLocalizedString("delete_tracker_title", comment: "Delete tracker"),
             message: nil,
