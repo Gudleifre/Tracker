@@ -6,13 +6,13 @@ final class StatisticsViewModel {
     var onEmptyStateChanged: ((Bool) -> Void)?
     
     // MARK: - Private Properties
-    private let storage = StatisticsStorage.shared
+    private let storage = UserDefaultsService.shared
     
     // MARK: - Public Methods
     func loadStats() {
-        let hasData = storage.completedCount > 0
+        let hasData = storage.completedTrackersCount > 0
         onStatsUpdated?(storage.bestPeriod, storage.perfectDays,
-                        storage.completedCount, storage.averageValue)
+                        storage.completedTrackersCount, storage.averageValue)
         onEmptyStateChanged?(!hasData)
     }
 }

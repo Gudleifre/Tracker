@@ -107,6 +107,7 @@ final class NewCategoryViewController: UIViewController {
     }
 }
 
+// MARK: - Extensions
 extension NewCategoryViewController: UITextFieldDelegate {
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         if doneButton.isEnabled {

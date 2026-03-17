@@ -2,6 +2,7 @@ import UIKit
 
 final class TrackersViewController: UIViewController {
     // MARK: - Private Properties
+    private let storage = UserDefaultsService.shared
     private let trackerStore: TrackerStore
     private let categoryStore: TrackerCategoryStore
     private let recordStore: TrackerRecordStore
@@ -11,9 +12,6 @@ final class TrackersViewController: UIViewController {
     private var searchText: String = ""
     
     private var currentFilter: TrackerFilter = .all
-    private let filterStorage = UserDefaults.standard
-    private let filterKey = "selected_filter"
-    
     private var currentDate = Date()
     private var trackersCollectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
     
@@ -149,7 +147,7 @@ final class TrackersViewController: UIViewController {
         super.viewDidAppear(animated)
         AnalyticsService.reportEvent(screen: "Main", event: "open")
     }
-
+    
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
         AnalyticsService.reportEvent(screen: "Main", event: "close")
@@ -342,25 +340,21 @@ final class TrackersViewController: UIViewController {
         let records = allRecords
         let trackers = allTrackers
         
-        // 1. Трекеров завершено
         let completedCount = records.count
-        StatisticsStorage.shared.completedCount = completedCount
+        storage.completedTrackersCount = completedCount
         
-        // 2. Лучший период (максимальное количество выполнений за день)
         let recordsByDate = Dictionary(grouping: records) {
             Calendar.current.startOfDay(for: $0.date ?? Date())
         }
         let bestPeriod = recordsByDate.values.map { $0.count }.max() ?? 0
-        StatisticsStorage.shared.bestPeriod = bestPeriod
+        storage.bestPeriod = bestPeriod
         
-        // 3. Идеальные дни (дни, когда выполнены все треки)
         let totalTrackers = trackers.count
         let perfectDays = recordsByDate.filter { $0.value.count == totalTrackers }.count
-        StatisticsStorage.shared.perfectDays = perfectDays
+        storage.perfectDays = perfectDays
         
-        // 4. Среднее значение
         let average = totalTrackers > 0 ? Double(completedCount) / Double(totalTrackers) : 0
-        StatisticsStorage.shared.averageValue = average
+        storage.averageValue = average
         
         NotificationCenter.default.post(name: .statisticsDidUpdate, object: nil)
     }
@@ -441,10 +435,9 @@ final class TrackersViewController: UIViewController {
     }
     
     private func loadSavedFilter() {
-        let savedValue = filterStorage.integer(forKey: filterKey)
+        let savedValue = storage.selectedFilter
         currentFilter = TrackerFilter(rawValue: savedValue) ?? .all
     }
-    
     
     // MARK: - @objc Methods
     @objc func datePickerValueChanged(_ sender: UIDatePicker) {
@@ -704,7 +697,7 @@ extension TrackersViewController {
     }
     
     private func saveFilter() {
-        filterStorage.set(currentFilter.rawValue, forKey: filterKey)
+        storage.selectedFilter = currentFilter.rawValue
     }
 }
 

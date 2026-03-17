@@ -17,7 +17,6 @@ final class ScheduleViewController: UIViewController {
     private lazy var tableView: UITableView = {
         let tableView = UITableView(frame: .zero, style: .plain)
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "weekdayCell")
-        tableView.isScrollEnabled = false
         tableView.layer.cornerRadius = 16
         tableView.separatorInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
         tableView.backgroundColor = .clear
@@ -57,6 +56,18 @@ final class ScheduleViewController: UIViewController {
         
         view.addSubview(tableView)
         view.addSubview(doneButton)
+        
+        let rowHeight: CGFloat = 75
+        let totalHeight = rowHeight * CGFloat(weekdays.count)
+        
+        let heightConstraint = tableView.heightAnchor.constraint(equalToConstant: totalHeight)
+        heightConstraint.priority = .defaultHigh
+        heightConstraint.isActive = true
+        
+        let screenHeight = UIScreen.main.bounds.height
+        if screenHeight <= 667 {
+            tableView.isScrollEnabled = true
+        }
     }
     
     private func setupConstraints() {
@@ -64,7 +75,7 @@ final class ScheduleViewController: UIViewController {
             tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            tableView.heightAnchor.constraint(equalToConstant: 525),
+            tableView.bottomAnchor.constraint(lessThanOrEqualTo: doneButton.topAnchor, constant: -16),
             
             doneButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             doneButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),

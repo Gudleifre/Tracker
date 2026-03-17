@@ -21,7 +21,7 @@ final class OnboardingViewController: UIPageViewController {
             let label = UILabel()
             label.text = item.text
             label.font = .systemFont(ofSize: 32, weight: .bold)
-            label.textColor = .ypBlackDay
+            label.textColor = .ypBlackStatic
             label.numberOfLines = 0
             label.textAlignment = .center
             label.translatesAutoresizingMaskIntoConstraints = false
@@ -32,7 +32,7 @@ final class OnboardingViewController: UIPageViewController {
     
     private let pageControl: UIPageControl = {
         let control = UIPageControl()
-        control.currentPageIndicatorTintColor = .ypBlackDay
+        control.currentPageIndicatorTintColor = .ypBlackStatic
         control.pageIndicatorTintColor = .ypGray
         control.translatesAutoresizingMaskIntoConstraints = false
         return control
@@ -42,8 +42,8 @@ final class OnboardingViewController: UIPageViewController {
         let button = UIButton()
         button.setTitle(NSLocalizedString("onboarding_button", comment: "Onboarding button"), for: .normal)
         button.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
-        button.setTitleColor(.ypWhiteDay, for: .normal)
-        button.backgroundColor = .ypBlackDay
+        button.setTitleColor(.ypWhiteStatic, for: .normal)
+        button.backgroundColor = .ypBlackStatic
         button.layer.cornerRadius = 16
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
@@ -129,7 +129,7 @@ final class OnboardingViewController: UIPageViewController {
     
     // MARK: - @objc Methods
     @objc private func continueButtonTapped() {
-        UserDefaults.standard.set(true, forKey: "hasSeenOnboarding")
+        UserDefaultsService.shared.hasSeenOnboarding = true
         
         guard let window = view.window else { return }
         UIView.transition(with: window, duration: 0.3, options: .transitionCrossDissolve) {

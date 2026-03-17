@@ -1,7 +1,7 @@
 import Foundation
 
 enum TrackerFilter: Int, CaseIterable {
-    case all = 0        
+    case all = 0
     case today = 1
     case completed = 2
     case uncompleted = 3

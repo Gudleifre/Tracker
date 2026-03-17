@@ -39,7 +39,7 @@
 "delete_category_message" = "Is this category definitely not needed?";
 
 // Действия
-"save_button" = "Save"; 
+"save_button" = "Save";
 "edit_action" = "Edit";
 "delete_action" = "Delete";
 "cancel_action" = "Cancel";

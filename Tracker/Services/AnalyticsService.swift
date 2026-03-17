@@ -9,7 +9,6 @@ struct AnalyticsService {
             "screen": screen
         ]
         AppMetrica.reportEvent(name: "EVENT", parameters: params)
-        print("[Analytics] screen: \(screen), event: \(event)")
     }
     
     static func reportClick(screen: String, item: String) {
@@ -19,6 +18,5 @@ struct AnalyticsService {
             "item": item
         ]
         AppMetrica.reportEvent(name: "EVENT", parameters: params)
-        print("[Analytics] screen: \(screen), event: click, item: \(item)")
     }
 }

@@ -45,14 +45,14 @@ final class StatisticsViewController: UIViewController {
         viewModel.loadStats()
     }
     
-    // MARK: - Public Methods
+    // MARK: - Private Methods
     private func setupUI() {
         view.backgroundColor = .ypWhiteDay
         
         title = NSLocalizedString("statistics_title", comment: "Statistics screen title")
         navigationController?.navigationBar.prefersLargeTitles = true
         
-        let topOffset: CGFloat = UIScreen.main.bounds.height <= 667 ? 16 : 24
+        let topOffset: CGFloat = UIScreen.main.bounds.height <= 667 ? 16 : 77
         
         view.addSubview(tableView)
         view.addSubview(placeholderView)

@@ -107,6 +107,4 @@ final class StatisticsCell: UITableViewCell {
         
         containerView.layer.addSublayer(gradient)
     }
-    
-   
 }

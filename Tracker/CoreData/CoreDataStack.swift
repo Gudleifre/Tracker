@@ -19,6 +19,6 @@ final class CoreDataStack {
     
     // MARK: - Context
     var context: NSManagedObjectContext {
-        return persistentContainer.viewContext
+        persistentContainer.viewContext
     }
 }
