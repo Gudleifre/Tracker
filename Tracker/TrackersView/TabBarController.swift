@@ -2,23 +2,9 @@ import UIKit
 
 final class TabBarController: UITabBarController {
     // MARK: - Private Properties
-    private let trackerStore: TrackerStore
-    private let categoryStore: TrackerCategoryStore
-    private let recordStore: TrackerRecordStore
-    
-    // MARK: - Initializer
-    init() {
-        self.trackerStore = TrackerStore.shared
-        self.categoryStore = TrackerCategoryStore.shared
-        self.recordStore = TrackerRecordStore.shared
-        
-        super.init(nibName: nil, bundle: nil)
-    }
-    
-    @available(*, unavailable)
-    required init?(coder: NSCoder) {
-        nil
-    }
+    private let trackerStore = TrackerStore()
+    private let categoryStore = TrackerCategoryStore()
+    private let recordStore = TrackerRecordStore()
     
     // MARK: - Overrides Methods
     override func viewDidLoad() {

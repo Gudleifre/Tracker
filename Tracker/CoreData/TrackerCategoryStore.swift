@@ -1,4 +1,3 @@
-import UIKit
 import CoreData
 
 protocol TrackerCategoryStoreDelegate: AnyObject {
@@ -6,25 +5,14 @@ protocol TrackerCategoryStoreDelegate: AnyObject {
 }
 
 final class TrackerCategoryStore: NSObject {
-    static let shared = TrackerCategoryStore()
     weak var delegate: TrackerCategoryStoreDelegate?
     
     // MARK: - Private Properties
-    private let context: NSManagedObjectContext
     private var fetchedResultsController: NSFetchedResultsController<TrackerCategoryCoreData>?
+    private let context = CoreDataStack.shared.context
     
     // MARK: - Initializers
-    private override init() {
-        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else {
-            fatalError("AppDelegate not found")
-        }
-        self.context = appDelegate.persistentContainer.viewContext
-        super.init()
-        setupFetchedResultsController()
-    }
-    
-    init(context: NSManagedObjectContext) {
-        self.context = context
+    override init() {
         super.init()
         setupFetchedResultsController()
     }
@@ -41,11 +29,50 @@ final class TrackerCategoryStore: NSObject {
         return category
     }
     
+    func deleteCategory(at index: Int) {
+        let categories = self.categories
+        guard index < categories.count else { return }
+        
+        let category = categories[index]
+        
+        if let trackers = category.trackers as? Set<TrackerCoreData> {
+            
+            for tracker in trackers {
+                if let records = tracker.records as? Set<TrackerRecordCoreData> {
+                    records.forEach {
+                        context.delete($0)
+                    }
+                }
+                context.delete(tracker)
+            }
+        }
+        
+        context.delete(category)
+        saveContext()
+    }
+    
+    func updateCategory(at index: Int, with newTitle: String) {
+        let categories = self.categories
+        guard index < categories.count else { return }
+        let category = categories[index]
+        category.title = newTitle
+        saveContext()
+    }
+    
     func category(at indexPath: IndexPath) -> TrackerCategoryCoreData? {
         fetchedResultsController?.object(at: indexPath)
     }
     
     // MARK: - Private Methods
+    private func saveContext() {
+        guard context.hasChanges else { return }
+        do {
+            try context.save()
+        } catch {
+            print("Error saving category: \(error)")
+        }
+    }
+    
     private func setupFetchedResultsController() {
         let fetchRequest: NSFetchRequest<TrackerCategoryCoreData> = TrackerCategoryCoreData.fetchRequest()
         
@@ -64,15 +91,6 @@ final class TrackerCategoryStore: NSObject {
             try controller.performFetch()
         } catch {
             print("Error fetch category: \(error)")
-        }
-    }
-    
-    private func saveContext() {
-        guard context.hasChanges else { return }
-        do {
-            try context.save()
-        } catch {
-            print("Error saving category: \(error)")
         }
     }
 }

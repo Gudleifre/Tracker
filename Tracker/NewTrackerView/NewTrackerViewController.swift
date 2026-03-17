@@ -6,14 +6,10 @@ protocol NewTrackerViewControllerDelegate: AnyObject {
 
 final class NewTrackerViewController: UIViewController {
     weak var delegate: NewTrackerViewControllerDelegate?
+    
     // MARK: - Private Properties
-    private let emojis = ["🙂", "😻", "🌺", "🐶", "❤️", "😱", "😇", "😡", "🥶", "🤔", "🙌", "🍔", "🥦", "🏓", "🥇", "🎸", "🏝️", "😪"]
-    private let colors: [UIColor] = [
-        .colorSelection1, .colorSelection2, .colorSelection3, .colorSelection4, .colorSelection5, .colorSelection6,
-        .colorSelection7, .colorSelection8, .colorSelection9, .colorSelection10, .colorSelection11, .colorSelection12,
-        .colorSelection13, .colorSelection14, .colorSelection15, .colorSelection16, .colorSelection17, .colorSelection18
-    ]
-    private let defaultCategory = "Важное"
+    private let maxLength = 38
+    private let categoryStore = TrackerCategoryStore()
     private var selectedSchedule: [Weekday] = []
     private var selectedEmojiIndex: Int?
     private var selectedColorIndex: Int?
@@ -21,6 +17,13 @@ final class NewTrackerViewController: UIViewController {
     private var selectedColor: UIColor?
     private var emojiCollectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
     private var colorCollectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
+    
+    private var selectedCategory: String? {
+        didSet {
+            updateCategoryCell()
+            updateCreateButtonState()
+        }
+    }
     
     private lazy var scrollView: UIScrollView = {
         let scrollView = UIScrollView()
@@ -40,11 +43,6 @@ final class NewTrackerViewController: UIViewController {
         textField.placeholder = "Введите название трекера"
         textField.backgroundColor = .ypBackgroundDay
         textField.layer.cornerRadius = 16
-        
-        textField.autocorrectionType = .no
-        textField.autocapitalizationType = .none
-        textField.spellCheckingType = .no
-        
         textField.clearButtonMode = .whileEditing
         textField.font = .systemFont(ofSize: 17, weight: .regular)
         textField.returnKeyType = .done
@@ -56,6 +54,25 @@ final class NewTrackerViewController: UIViewController {
         
         textField.translatesAutoresizingMaskIntoConstraints = false
         return textField
+    }()
+    
+    private lazy var errorLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Ограничение \(maxLength) символов"
+        label.font = .systemFont(ofSize: 17, weight: .regular)
+        label.textColor = .ypRed
+        label.textAlignment = .center
+        label.isHidden = true
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
+    private lazy var textFieldStack: UIStackView = {
+        let stackView = UIStackView(arrangedSubviews: [titleTextField, errorLabel])
+        stackView.axis = .vertical
+        stackView.spacing = 8
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        return stackView
     }()
     
     private lazy var tableView: UITableView = {
@@ -127,12 +144,6 @@ final class NewTrackerViewController: UIViewController {
         setupConstraints()
         setupActions()
         hideKeyboardWhenTappedAround()
-        
-        if let categoryCell = tableView.cellForRow(at: IndexPath(row: 0, section: 0)) {
-            categoryCell.detailTextLabel?.text = defaultCategory
-            categoryCell.detailTextLabel?.textColor = .ypGray
-        }
-        
         updateCreateButtonState()
     }
     
@@ -155,13 +166,13 @@ final class NewTrackerViewController: UIViewController {
         view.addSubview(scrollView)
         scrollView.addSubview(contentView)
         
-        view.addSubview(titleTextField)
-        view.addSubview(tableView)
-        view.addSubview(emojiLabel)
-        view.addSubview(emojiCollectionView)
-        view.addSubview(colorLabel)
-        view.addSubview(colorCollectionView)
-        view.addSubview(buttonsStackView)
+        contentView.addSubview(textFieldStack)
+        contentView.addSubview(tableView)
+        contentView.addSubview(emojiLabel)
+        contentView.addSubview(emojiCollectionView)
+        contentView.addSubview(colorLabel)
+        contentView.addSubview(colorCollectionView)
+        contentView.addSubview(buttonsStackView)
         
         tableView.dataSource = self
         tableView.delegate = self
@@ -211,16 +222,14 @@ final class NewTrackerViewController: UIViewController {
             contentView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
             contentView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
             contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
-            contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor)
-        ])
-        
-        NSLayoutConstraint.activate([
-            titleTextField.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 24),
-            titleTextField.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            titleTextField.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-            titleTextField.heightAnchor.constraint(equalToConstant: 75),
+            contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
             
-            tableView.topAnchor.constraint(equalTo: titleTextField.bottomAnchor, constant: 24),
+            titleTextField.heightAnchor.constraint(equalToConstant: 75),
+            textFieldStack.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 24),
+            textFieldStack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            textFieldStack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            
+            tableView.topAnchor.constraint(equalTo: textFieldStack.bottomAnchor, constant: 24),
             tableView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             tableView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             tableView.heightAnchor.constraint(equalToConstant: 150),
@@ -264,7 +273,6 @@ final class NewTrackerViewController: UIViewController {
         view.layoutIfNeeded()
     }
     
-    
     private func setupActions() {
         titleTextField.addAction(UIAction { [weak self] _ in self?.textFieldDidChange() }, for: .editingChanged)
         
@@ -274,7 +282,7 @@ final class NewTrackerViewController: UIViewController {
     
     private func updateCreateButtonState() {
         let hasText = !(titleTextField.text?.isEmpty ?? true)
-        let hasCategory = true
+        let hasCategory = selectedCategory != nil
         let hasSchedule = !selectedSchedule.isEmpty
         let hasEmoji = selectedEmoji != nil
         let hasColor = selectedColor != nil
@@ -286,6 +294,14 @@ final class NewTrackerViewController: UIViewController {
     }
     
     private func textFieldDidChange() {
+        guard let text = titleTextField.text else { return }
+        if text.count > maxLength {
+            titleTextField.text = String(text.prefix(maxLength))
+            errorLabel.isHidden = false
+        } else {
+            errorLabel.isHidden = true
+        }
+        
         updateCreateButtonState()
     }
     
@@ -295,19 +311,46 @@ final class NewTrackerViewController: UIViewController {
     
     private func createButtonTapped() {
         guard let title = titleTextField.text, !title.isEmpty,
-              !selectedSchedule.isEmpty else { return }
+              let selectedEmoji,
+              let selectedColor,
+              !selectedSchedule.isEmpty,
+              let selectedCategory else { return }
         
         let newTracker = Tracker(
             id: UUID(),
             title: title,
-            color: selectedColor ?? .colorSelection1,
-            emoji: selectedEmoji ?? "💪🏻",
+            color: selectedColor,
+            emoji: selectedEmoji,
             schedule: selectedSchedule,
             isPinned: false,
-            category: defaultCategory)
+            category: selectedCategory
+        )
         
-        delegate?.didCreateTracker(newTracker, category: defaultCategory)
+        delegate?.didCreateTracker(newTracker, category: selectedCategory)
         dismiss(animated: true)
+    }
+    
+    private func updateCategoryCell() {
+        if let categoryCell = tableView.cellForRow(at: IndexPath(row: 0, section: 0)) as? OptionTableViewCell {
+            if let category = selectedCategory {
+                categoryCell.detailTextLabel?.text = category
+            } else {
+                categoryCell.detailTextLabel?.text = nil
+            }
+        }
+    }
+    
+    private func showCategoriesScreen() {
+        let categoriesVM = CategoriesViewModel(
+            categoryStore: categoryStore,
+            selectedCategory: selectedCategory
+        )
+        categoriesVM.onCategorySelected = { [weak self] category in
+            self?.selectedCategory = category
+        }
+        
+        let categoriesVC = CategoriesViewController(viewModel: categoriesVM)
+        navigationController?.pushViewController(categoriesVC, animated: true)
     }
 }
 
@@ -326,7 +369,7 @@ extension NewTrackerViewController: UITableViewDataSource {
         
         if indexPath.row == 0 {
             cell.textLabel?.text = "Категория"
-            cell.detailTextLabel?.text = defaultCategory
+            cell.detailTextLabel?.text = selectedCategory
             
             
         } else {
@@ -346,7 +389,7 @@ extension NewTrackerViewController: UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if indexPath.row == 0 {
-            print("Выбор категории")
+            showCategoriesScreen()
         } else {
             let scheduleVC = ScheduleViewController()
             scheduleVC.delegate = self
@@ -376,13 +419,26 @@ extension NewTrackerViewController: UITextFieldDelegate {
         textField.resignFirstResponder()
         return true
     }
+    
+    func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
+        let currentText = textField.text ?? ""
+        let newText = (currentText as NSString).replacingCharacters(in: range, with: string)
+        
+        if newText.count > maxLength {
+            errorLabel.isHidden = false
+        } else {
+            errorLabel.isHidden = true
+        }
+        
+        return true
+    }
 }
 
 extension NewTrackerViewController: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         switch collectionView {
-        case emojiCollectionView: emojis.count
-        case colorCollectionView: colors.count
+        case emojiCollectionView: MockData.emojis.count
+        case colorCollectionView: MockData.colors.count
         default: 0
         }
     }
@@ -391,12 +447,12 @@ extension NewTrackerViewController: UICollectionViewDataSource {
         switch collectionView {
         case emojiCollectionView:
             guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: EmojiCell.identifier, for: indexPath) as? EmojiCell else { return UICollectionViewCell()}
-            cell.configure(with: emojis[indexPath.row])
+            cell.configure(with: MockData.emojis[indexPath.row])
             return cell
             
         case colorCollectionView:
             guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ColorCell.identifier, for: indexPath) as? ColorCell else { return UICollectionViewCell()}
-            cell.configure(with: colors[indexPath.row])
+            cell.configure(with: MockData.colors[indexPath.row])
             return cell
             
         default:
@@ -439,7 +495,7 @@ extension NewTrackerViewController: UICollectionViewDelegate {
                 collectionView.deselectItem(at: previousIndexPath, animated: false)
             }
             selectedEmojiIndex = indexPath.item
-            selectedEmoji = emojis[indexPath.item]
+            selectedEmoji = MockData.emojis[indexPath.item]
             
         case colorCollectionView:
             if let selectedIndex = selectedColorIndex {
@@ -447,7 +503,7 @@ extension NewTrackerViewController: UICollectionViewDelegate {
                 collectionView.deselectItem(at: previousIndexPath, animated: false)
             }
             selectedColorIndex = indexPath.item
-            selectedColor = colors[indexPath.item]
+            selectedColor = MockData.colors[indexPath.item]
             
         default:
             break
