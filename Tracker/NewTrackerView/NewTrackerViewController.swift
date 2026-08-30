@@ -2,9 +2,18 @@ import UIKit
 
 protocol NewTrackerViewControllerDelegate: AnyObject {
     func didCreateTracker(_ tracker: Tracker, category: String)
+    func didUpdateTracker(_ tracker: Tracker, category: String)
+}
+
+enum TrackerMode {
+    case create
+    case edit
 }
 
 final class NewTrackerViewController: UIViewController {
+    // MARK: - Public Properties
+    var mode: TrackerMode = .create
+    var trackerToEdit: Tracker?
     weak var delegate: NewTrackerViewControllerDelegate?
     
     // MARK: - Private Properties
@@ -40,7 +49,7 @@ final class NewTrackerViewController: UIViewController {
     
     private lazy var titleTextField: UITextField = {
         let textField = UITextField()
-        textField.placeholder = "Введите название трекера"
+        textField.placeholder = NSLocalizedString("tracker_name_placeholder", comment: "Tracker name placeholder")
         textField.backgroundColor = .ypBackgroundDay
         textField.layer.cornerRadius = 16
         textField.clearButtonMode = .whileEditing
@@ -58,7 +67,10 @@ final class NewTrackerViewController: UIViewController {
     
     private lazy var errorLabel: UILabel = {
         let label = UILabel()
-        label.text = "Ограничение \(maxLength) символов"
+        label.text = String.localizedStringWithFormat(
+            NSLocalizedString("char_limit_error", comment: "Character limit error"),
+            maxLength
+        )
         label.font = .systemFont(ofSize: 17, weight: .regular)
         label.textColor = .ypRed
         label.textAlignment = .center
@@ -87,7 +99,7 @@ final class NewTrackerViewController: UIViewController {
     
     private lazy var emojiLabel: UILabel = {
         let label = UILabel()
-        label.text = "Emoji"
+        label.text = NSLocalizedString("emoji_section", comment: "Emoji section title")
         label.font = .systemFont(ofSize: 19, weight: .bold)
         label.textColor = .ypBlackDay
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -96,7 +108,7 @@ final class NewTrackerViewController: UIViewController {
     
     private lazy var colorLabel: UILabel = {
         let label = UILabel()
-        label.text = "Цвет"
+        label.text = NSLocalizedString("color_section", comment: "Color section title")
         label.font = .systemFont(ofSize: 19, weight: .bold)
         label.textColor = .ypBlackDay
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -105,7 +117,7 @@ final class NewTrackerViewController: UIViewController {
     
     private lazy var cancelButton: UIButton = {
         let button = UIButton()
-        button.setTitle("Отменить", for: .normal)
+        button.setTitle(NSLocalizedString("cancel_button", comment: "Cancel button"), for: .normal)
         button.setTitleColor(.ypRed, for: .normal)
         button.backgroundColor = .clear
         button.layer.cornerRadius = 16
@@ -118,8 +130,8 @@ final class NewTrackerViewController: UIViewController {
     
     private lazy var createButton: UIButton = {
         let button = UIButton()
-        button.setTitle("Создать", for: .normal)
-        button.setTitleColor(.ypWhiteDay, for: .normal)
+        button.setTitle(NSLocalizedString("create_button", comment: "Create button"), for: .normal)
+        button.setTitleColor(.ypWhiteStatic, for: .normal)
         button.backgroundColor = .ypGray
         button.layer.cornerRadius = 16
         button.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
@@ -145,6 +157,21 @@ final class NewTrackerViewController: UIViewController {
         setupActions()
         hideKeyboardWhenTappedAround()
         updateCreateButtonState()
+        
+        if mode == .edit, let tracker = trackerToEdit {
+            title = NSLocalizedString("edit_habit_title", comment: "Edit habit screen title")
+            createButton.setTitle(NSLocalizedString("save_button", comment: "Save"), for: .normal)
+            titleTextField.text = tracker.title
+            selectedEmoji = tracker.emoji
+            selectedColor = tracker.color
+            selectedSchedule = tracker.schedule
+            selectedCategory = tracker.category
+            
+            updateUIForEditMode()
+        } else {
+            title = NSLocalizedString("new_habit_title", comment: "New habit screen title")
+            createButton.setTitle(NSLocalizedString("create_button", comment: "Create"), for: .normal)
+        }
     }
     
     override func viewDidLayoutSubviews() {
@@ -156,7 +183,6 @@ final class NewTrackerViewController: UIViewController {
     private func setupUI() {
         view.backgroundColor = .ypWhiteDay
         
-        title = "Новая привычка"
         navigationController?.navigationBar.prefersLargeTitles = false
         navigationController?.navigationBar.titleTextAttributes = [
             .font: UIFont.systemFont(ofSize: 16, weight: .medium),
@@ -290,7 +316,13 @@ final class NewTrackerViewController: UIViewController {
         let isReadyToCreate = hasText && hasCategory && hasSchedule && hasEmoji && hasColor
         
         createButton.isEnabled = isReadyToCreate
-        createButton.backgroundColor = isReadyToCreate ? .ypBlackDay : .ypGray
+        if isReadyToCreate {
+            createButton.backgroundColor = .ypBlackDay
+            createButton.setTitleColor(.ypWhiteDay, for: .normal)
+        } else {
+            createButton.backgroundColor = .ypGray
+            createButton.setTitleColor(.ypWhiteStatic, for: .normal)
+        }
     }
     
     private func textFieldDidChange() {
@@ -316,17 +348,30 @@ final class NewTrackerViewController: UIViewController {
               !selectedSchedule.isEmpty,
               let selectedCategory else { return }
         
-        let newTracker = Tracker(
-            id: UUID(),
-            title: title,
-            color: selectedColor,
-            emoji: selectedEmoji,
-            schedule: selectedSchedule,
-            isPinned: false,
-            category: selectedCategory
-        )
-        
-        delegate?.didCreateTracker(newTracker, category: selectedCategory)
+        if mode == .edit, let trackerToEdit {
+            let updatedTracker = Tracker(
+                id: trackerToEdit.id,
+                title: title,
+                color: selectedColor,
+                emoji: selectedEmoji,
+                schedule: selectedSchedule,
+                isPinned: trackerToEdit.isPinned,
+                category: selectedCategory
+            )
+            delegate?.didUpdateTracker(updatedTracker, category: selectedCategory)
+        } else {
+            let newTracker = Tracker(
+                id: UUID(),
+                title: title,
+                color: selectedColor,
+                emoji: selectedEmoji,
+                schedule: selectedSchedule,
+                isPinned: false,
+                category: selectedCategory
+            )
+            
+            delegate?.didCreateTracker(newTracker, category: selectedCategory)
+        }
         dismiss(animated: true)
     }
     
@@ -352,6 +397,18 @@ final class NewTrackerViewController: UIViewController {
         let categoriesVC = CategoriesViewController(viewModel: categoriesVM)
         navigationController?.pushViewController(categoriesVC, animated: true)
     }
+    
+    private func updateUIForEditMode() {
+        if let emoji = selectedEmoji, let index = MockData.emojis.firstIndex(of: emoji) {
+            let indexPath = IndexPath(item: index, section: 0)
+            emojiCollectionView.selectItem(at: indexPath, animated: false, scrollPosition: [])
+        }
+        
+        if let color = selectedColor, let index = MockData.colors.firstIndex(where: { $0 == color }) {
+            let indexPath = IndexPath(item: index, section: 0)
+            colorCollectionView.selectItem(at: indexPath, animated: false, scrollPosition: [])
+        }
+    }
 }
 
 // MARK: - Extensions
@@ -368,12 +425,12 @@ extension NewTrackerViewController: UITableViewDataSource {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: OptionTableViewCell.identifier, for: indexPath) as? OptionTableViewCell else { return UITableViewCell() }
         
         if indexPath.row == 0 {
-            cell.textLabel?.text = "Категория"
+            cell.textLabel?.text = NSLocalizedString("category_title", comment: "Category cell")
             cell.detailTextLabel?.text = selectedCategory
             
             
         } else {
-            cell.textLabel?.text = "Расписание"
+            cell.textLabel?.text = NSLocalizedString("schedule_title", comment: "Schedule cell")
             if !selectedSchedule.isEmpty {
                 cell.detailTextLabel?.text = selectedSchedule.map { $0.shortName }.joined(separator: ", ")
             }
@@ -403,7 +460,7 @@ extension NewTrackerViewController: ScheduleViewControllerDelegate {
         selectedSchedule = schedule
         if let scheduleCell = tableView.cellForRow(at: IndexPath(row: 1, section: 0)) as? OptionTableViewCell {
             if schedule.count == Weekday.allCases.count {
-                scheduleCell.detailTextLabel?.text = "Каждый день"
+                scheduleCell.detailTextLabel?.text =  NSLocalizedString("every_day", comment: "Every day")
             } else {
                 let daysString = schedule.map { $0.shortName }.joined(separator: ", ")
                 scheduleCell.detailTextLabel?.text = daysString

@@ -10,11 +10,11 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         
         window = UIWindow(windowScene: windowScene)
         
-        if !UserDefaults.standard.bool(forKey: "hasSeenOnboarding") {
-              window?.rootViewController = OnboardingViewController()
-          } else {
-              window?.rootViewController = TabBarController()
-          }
+        if !UserDefaultsService.shared.hasSeenOnboarding {
+            window?.rootViewController = OnboardingViewController()
+        } else {
+            window?.rootViewController = TabBarController()
+        }
         window?.makeKeyAndVisible()
     }
 }

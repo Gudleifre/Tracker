@@ -29,7 +29,7 @@ final class TrackersViewCell: UICollectionViewCell {
     private let titleLabel: UILabel = {
         let label = UILabel()
         label.font = .systemFont(ofSize: 12, weight: .medium)
-        label.textColor = .ypWhiteDay
+        label.textColor = .ypWhiteStatic
         label.numberOfLines = 2
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -50,7 +50,7 @@ final class TrackersViewCell: UICollectionViewCell {
         let label = UILabel()
         label.font = .systemFont(ofSize: 12, weight: .medium)
         label.textColor = .ypBlackDay
-        label.text = "0 дней"
+        label.text = NSLocalizedString("days_count", comment: "Days count")
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -78,7 +78,37 @@ final class TrackersViewCell: UICollectionViewCell {
         plusButton.setImage(UIImage(systemName: imageName), for: .normal)
         plusButton.backgroundColor = isCompleted ? tracker.color.withAlphaComponent(0.3) : tracker.color
         
-        daysCountLabel.text = "\(completedDays) \(dayString(for: completedDays))"
+        let daysString = String.localizedStringWithFormat(
+            NSLocalizedString("days_count", comment: "Number of days"),
+            completedDays
+        )
+        
+        daysCountLabel.text = daysString
+    }
+    
+    func createPreview(with tracker: Tracker) -> UIView {
+        let preview = UIView(frame: CGRect(x: 0, y: 0, width: 167, height: 90))
+        preview.backgroundColor = tracker.color
+        preview.layer.cornerRadius = 16
+        preview.clipsToBounds = true
+        
+        let emojiLabel = UILabel(frame: CGRect(x: 12, y: 12, width: 28, height: 28))
+        emojiLabel.text = tracker.emoji
+        emojiLabel.font = .systemFont(ofSize: 14)
+        emojiLabel.textAlignment = .center
+        emojiLabel.backgroundColor = .white.withAlphaComponent(0.3)
+        emojiLabel.layer.cornerRadius = 14
+        emojiLabel.clipsToBounds = true
+        preview.addSubview(emojiLabel)
+        
+        let titleLabel = UILabel(frame: CGRect(x: 12, y: 48, width: 143, height: 34))
+        titleLabel.text = tracker.title
+        titleLabel.font = .systemFont(ofSize: 12, weight: .medium)
+        titleLabel.textColor = .white
+        titleLabel.numberOfLines = 2
+        preview.addSubview(titleLabel)
+        
+        return preview
     }
     
     // MARK: - Private Methods
@@ -116,20 +146,5 @@ final class TrackersViewCell: UICollectionViewCell {
             plusButton.heightAnchor.constraint(equalToConstant: 34),
             plusButton.bottomAnchor.constraint(lessThanOrEqualTo: contentView.bottomAnchor)
         ])
-    }
-    
-    private func dayString(for count: Int) -> String {
-        let lastDigit = count % 10
-        let lastTwoDigits = count % 100
-        
-        if lastTwoDigits >= 11 && lastTwoDigits <= 19 {
-            return "дней"
-        }
-        
-        switch lastDigit {
-        case 1: return "день"
-        case 2, 3, 4: return "дня"
-        default: return "дней"
-        }
     }
 }

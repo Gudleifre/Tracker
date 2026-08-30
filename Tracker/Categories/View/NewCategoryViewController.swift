@@ -14,7 +14,7 @@ final class NewCategoryViewController: UIViewController {
     // MARK: - Private Properties
     private lazy var textField: UITextField = {
         let textField = UITextField()
-        textField.placeholder = "Введите название категории"
+        textField.placeholder = NSLocalizedString("category_placeholder", comment: "Category placeholder")
         textField.backgroundColor = .ypBackgroundDay
         textField.layer.cornerRadius = 16
         textField.clearButtonMode = .whileEditing
@@ -33,7 +33,7 @@ final class NewCategoryViewController: UIViewController {
     
     private lazy var doneButton: UIButton = {
         let button = UIButton()
-        button.setTitle("Готово", for: .normal)
+        button.setTitle(NSLocalizedString("done_button", comment: "Done button"), for: .normal)
         button.setTitleColor(.ypWhiteDay, for: .normal)
         button.backgroundColor = .ypGray
         button.layer.cornerRadius = 16
@@ -56,7 +56,7 @@ final class NewCategoryViewController: UIViewController {
     private func setupUI() {
         view.backgroundColor = .ypWhiteDay
         
-        title = mode == .edit ? "Редактирование категории" : "Новая категория"
+        title = mode == .edit ? NSLocalizedString("edit_category_title", comment: "Edit category title") : NSLocalizedString("new_category_title", comment: "New category title")
         
         if mode == .edit {
             textField.text = initialCategoryName
@@ -107,6 +107,7 @@ final class NewCategoryViewController: UIViewController {
     }
 }
 
+// MARK: - Extensions
 extension NewCategoryViewController: UITextFieldDelegate {
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         if doneButton.isEnabled {
